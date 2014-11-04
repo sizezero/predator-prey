@@ -1,4 +1,4 @@
-name := """scells"""
+name := """predator-prey"""
 
 version := "1.0"
 
