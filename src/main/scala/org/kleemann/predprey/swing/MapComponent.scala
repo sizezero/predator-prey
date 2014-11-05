@@ -4,12 +4,20 @@ import swing._
 import java.awt.{Color, Graphics2D, Point, geom}
 import org.kleemann.predprey.model._
 
-class MapComponent(val simulation: Simulation) extends Component {
+class MapComponent(var simulation: Simulation) extends Component {
   
   border = Swing.LineBorder(Color.BLACK)
   // TODO: example code has this without Dimension object "preferredSize = (300,200)"
   preferredSize = new java.awt.Dimension(300, 200)
 
+  // TODO: seems kind of dumb to set this both here and in the constructor
+  def setSimulation(s: Simulation) {
+    this.simulation = s
+    // I believe that since we haven't resized, we should just
+    // repaint() instead of revalidate() or invalidate()
+    repaint
+  }
+  
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
 

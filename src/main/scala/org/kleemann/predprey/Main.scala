@@ -9,19 +9,20 @@ import model._
 
 object Main extends SimpleSwingApplication {
   
-  var iteration = 0
-  val simulation: Simulation = new SimulationImp()
+  var simulation: Simulation = SimulationFactory.random1
+  val mapComponent = new swing.MapComponent(simulation)
 
   def top = new MainFrame {
     title = "Predator / Prey"
     
-    val iterationLabel = new Label(iteration.toString)
+    val iterationLabel = new Label(simulation.iteration.toString)
     val nextButton = new Button("Next") {
       reactions += {
         case ButtonClicked(_) => {
-          iteration += 1
-          iterationLabel.text = iteration.toString
-          simulation.next
+          // TODO: since this takes quite a while we probably don't want it in the ui thread
+          simulation = simulation.next
+          iterationLabel.text = simulation.iteration.toString
+          mapComponent.setSimulation(simulation)
         }
       }
     }
@@ -29,9 +30,8 @@ object Main extends SimpleSwingApplication {
       contents.append(iterationLabel, nextButton)
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
-    val b2 = new swing.MapComponent(simulation)
     contents = new BoxPanel(Orientation.Horizontal ) {
-      contents.append(b1, b2)
+      contents.append(b1, mapComponent)
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
   }
