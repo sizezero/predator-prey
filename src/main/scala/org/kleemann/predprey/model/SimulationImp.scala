@@ -16,6 +16,8 @@ private[model] class SimulationImp(
 
   def next: Simulation = {
 
+    var eatenGrass: Set[Grass] = Set()
+    
     // rabbits move towards grass and eats it
     val nextRs: List[Rabbit] = rs map { r =>
       r match {
@@ -23,9 +25,13 @@ private[model] class SimulationImp(
 
           // if the rabbit is close then eat it; otherwise move towards it
           closestGrass(gs, rloc) match {
-            case Some((Grass(gid, gloc), d)) => {
-              if (adjacent(d)) r // TODO: this is an efficient way to handle the side effect of removing the grass
-              else Rabbit(rid, moveTowards(rloc, gloc))
+            case Some((g, d)) => {
+              if (adjacent(d)) {
+                // TODO if grass has already been eaten then rabbit doesn't eat
+                eatenGrass += g
+                r // TODO: this is an efficient way to handle the side effect of removing the grass
+              }
+              else Rabbit(rid, moveTowards(rloc, g.loc))
             }
             // no grass then the rabbit doesn't move
             case None => r
@@ -34,8 +40,8 @@ private[model] class SimulationImp(
       }
     }
 
-    // TODO: currently grass is static
-    val nextGs = gs
+    // remove all eaten grass
+    val nextGs = gs.filter{ !eatenGrass.contains(_) }
 
     new SimulationImp(
       iteration + 1,

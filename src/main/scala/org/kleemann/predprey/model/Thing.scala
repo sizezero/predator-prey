@@ -28,7 +28,7 @@ object Thing {
   // fairly dumb move algorithm: move dist 0.5 in both x and y directions towards target
   // will overshoot
   def moveTowards(loc1: Location, loc2: Location): Location = {
-    val d = 0.5
+    val d = 1.0
     if (adjacent(distance(loc1, loc2))) loc1
     else Location(if (loc1.x > loc2.x) loc1.x - d else loc1.x + d, if (loc1.y > loc2.y) loc1.y - d else loc1.y + d)
   }
