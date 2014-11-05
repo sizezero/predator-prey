@@ -4,14 +4,12 @@ import swing._
 import java.awt.{Color, Graphics2D, Point, geom}
 import org.kleemann.predprey.model._
 
-class MapComponent extends Component {
+class MapComponent(val simulation: Simulation) extends Component {
   
   border = Swing.LineBorder(Color.BLACK)
   // TODO: example code has this without Dimension object "preferredSize = (300,200)"
   preferredSize = new java.awt.Dimension(300, 200)
 
-  val simulation: Simulation = new SimulationImp()
-  
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
 
@@ -31,6 +29,7 @@ class MapComponent extends Component {
     g.setColor(new Color(0xa56648))
     g.fillRect(0, 0, c(simulation.width.toInt), c(simulation.height.toInt))
     
+    // current things are 2x2 boxes
     for(t <- simulation.things) t match {
       case Grass(id, x, y) => {
         g.setColor(Color.YELLOW)

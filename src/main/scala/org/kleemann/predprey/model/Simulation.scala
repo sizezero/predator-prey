@@ -15,7 +15,7 @@ abstract class Simulation {
    * Returns the next value in the simulation.  TODO: may need a randomization
    * State.
    */
-  //def next: Simulation
+  def next: Simulation
 
   /**
    * The width in simulation units.  TODO: We should define what this means in real/word terms
