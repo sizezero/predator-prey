@@ -52,13 +52,13 @@ object SimulationFactory {
 
   // TODO: returing SimulationImp just for testing
   def random1: SimulationImp = {
-    val width = 300.0
-    val height = 200.0
+    val width = 150.0
+    val height = 100.0
     var id: Int = 0
     val rnd = new scala.util.Random()
 
     var gs: List[Grass] = List()
-    for (i <- 1 to 10) {
+    for (i <- 1 to 50) {
       // need to play around with the list append syntax
       // doesn't work
       // l += i
@@ -71,7 +71,7 @@ object SimulationFactory {
     }
 
     var rs: List[Rabbit] = List()
-    for (i <- 1 to 10) {
+    for (i <- 1 to 20) {
       rs = Rabbit(id, Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))) :: rs
       id += 1
     }
