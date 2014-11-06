@@ -18,15 +18,24 @@ private[model] class SimulationImp(
 
     val rndNew = new scala.util.Random(rnd.self) 
     var newNextThing = nextThing
+
     // this is ugly; what's the good way to have auto incrementing serial ids in a functional environment
     def createGrass(loc: Location): Grass = {
       val g = Grass(newNextThing, loc)
       newNextThing += 1
       g
     }
+    def makeBaby(parent: Rabbit): Rabbit = {
+      val birthDistance = 5.0
+      val loc = Location(parent.loc.x + rnd.nextDouble*birthDistance, parent.loc.y + rnd.nextDouble*birthDistance)
+      val baby = new Rabbit(newNextThing, loc)
+      newNextThing += 1
+      baby
+    }
     
     var eatenGrass: Set[Grass] = Set()
-
+    var babyRabbits: List[Rabbit] = List()
+    
     // rabbits move towards grass and eats it
     val nextRs: List[Rabbit] = rs map { r =>
       // if the rabbit is close then eat it; otherwise move towards it
@@ -36,7 +45,10 @@ private[model] class SimulationImp(
             // TODO if grass has already been eaten then rabbit doesn't eat
             if (eatenGrass.contains(g)) r.didntEat
             else {
+              // lots of side effects for code trying to be functional
+              // maybe functional code is bad for simulations?
               eatenGrass += g
+              babyRabbits = makeBaby(r) :: babyRabbits
               r.fullyFed
             }
           }
@@ -77,7 +89,7 @@ private[model] class SimulationImp(
       nextThing,
       rndNew,
       nextGs ++ newGrass,
-      nextRs)
+      nextRs ++ babyRabbits)
   }
 }
 
