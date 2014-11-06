@@ -41,19 +41,35 @@ private[model] class SimulationImp(
     // remove all eaten grass
     val nextGs = gs.filter{ !eatenGrass.contains(_) }
 
+    val rndNew = new scala.util.Random(rnd.self) 
+    var newNextThing = nextThing
+    
     // grow new grass
     // partition into 10x10 sections
-    val p: Map[(Int, Int), List[Grass]] = nextGs.groupBy { g => ((g.loc.x/10).toInt, (g.loc.y/10).toInt) }
+    val p: Map[(Int, Int), List[Grass]] = nextGs.groupBy { g => ((g.loc.x/10).toInt*10, (g.loc.y/10).toInt*10) }
     // each partition may generate a new Grass depending on how many grasses are in the partition
-    val newGrass: List[Grass] = p.flatMap{ (key,value) =>  }
+    // TODO: we're not trying the partitions that are zero
+    val newGrass = p.flatMap{ case (loc: (Int,Int), gs: List[Grass]) => {
+      val pct =  gs.size match {
+        case 0 => 5
+        case 1 => 20
+        case 2 => 50
+        case _ => 70
+      }
+      if (rnd.nextInt(100) < pct) {
+         val l = List(Grass(newNextThing, Location((loc._1+rndNew.nextInt(10)).toDouble, (loc._2+rndNew.nextInt(10)).toDouble)))
+         newNextThing += 1
+         l
+      } else List()
+    }}
     
     new SimulationImp(
       iteration + 1,
       width,
       height,
       nextThing,
-      new scala.util.Random(rnd.self),
-      nextGs,
+      rndNew,
+      nextGs ++ newGrass,
       nextRs)
   }
 }
