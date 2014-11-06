@@ -41,6 +41,12 @@ private[model] class SimulationImp(
     // remove all eaten grass
     val nextGs = gs.filter{ !eatenGrass.contains(_) }
 
+    // grow new grass
+    // partition into 10x10 sections
+    val p: Map[(Int, Int), List[Grass]] = nextGs.groupBy { g => ((g.loc.x/10).toInt, (g.loc.y/10).toInt) }
+    // each partition may generate a new Grass depending on how many grasses are in the partition
+    val newGrass: List[Grass] = p.flatMap{ (key,value) =>  }
+    
     new SimulationImp(
       iteration + 1,
       width,
