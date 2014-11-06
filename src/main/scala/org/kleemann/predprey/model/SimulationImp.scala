@@ -20,25 +20,23 @@ private[model] class SimulationImp(
     
     // rabbits move towards grass and eats it
     val nextRs: List[Rabbit] = rs map { r =>
-      r match {
-        case Rabbit(rid, rloc) => {
-
-          // if the rabbit is close then eat it; otherwise move towards it
-          closestGrass(gs, rloc) match {
-            case Some((g, d)) => {
-              if (adjacent(d)) {
-                // TODO if grass has already been eaten then rabbit doesn't eat
-                eatenGrass += g
-                r // TODO: this is an efficient way to handle the side effect of removing the grass
-              }
-              else Rabbit(rid, moveTowards(rloc, g.loc))
+      // if the rabbit is close then eat it; otherwise move towards it
+      closestGrass(gs, r.loc) match {
+        case Some((g, d)) => {
+          if (adjacent(d)) {
+            // TODO if grass has already been eaten then rabbit doesn't eat
+            if (eatenGrass.contains(g)) r.didntEat
+            else {
+              eatenGrass += g
+              r.fullyFed
             }
-            // no grass then the rabbit doesn't move
-            case None => r
           }
+          else r.moveToward(g.loc).didntEat
         }
+        // no grass then the rabbit doesn't move
+        case None => r.didntEat
       }
-    }
+    } filter { ! _.isStarved }
 
     // remove all eaten grass
     val nextGs = gs.filter{ !eatenGrass.contains(_) }
@@ -56,7 +54,7 @@ private[model] class SimulationImp(
 
 object SimulationFactory {
 
-  // TODO: returing SimulationImp just for testing
+  // TODO: returning SimulationImp just for testing
   def random1: SimulationImp = {
     val width = 150.0
     val height = 100.0
@@ -78,7 +76,8 @@ object SimulationFactory {
 
     var rs: List[Rabbit] = List()
     for (i <- 1 to 20) {
-      rs = Rabbit(id, Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))) :: rs
+      val loc = Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))
+      rs = new Rabbit(id, loc) :: rs
       id += 1
     }
 

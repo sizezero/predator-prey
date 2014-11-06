@@ -39,13 +39,13 @@ class MapComponent(var simulation: Simulation) extends Component {
     
     // current things are 2x2 boxes
     for(t <- simulation.things) t match {
-      case Grass(id, Location(x, y)) => {
+      case gr: Grass => {
         g.setColor(Color.YELLOW)
-        g.fillRect(c(x.toInt), c(y.toInt), 2, 2)
+        g.fillRect(c(gr.loc.x.toInt), c(gr.loc.y.toInt), 2, 2)
       }
-      case Rabbit(id, Location(x, y)) => {
+      case r: Rabbit => {
         g.setColor(Color.BLUE)
-        g.fillRect(c(x.toInt), c(y.toInt), 2, 2)
+        g.fillRect(c(r.loc.x.toInt), c(r.loc.y.toInt), 2, 2)
       }
     }
   }

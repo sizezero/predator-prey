@@ -56,6 +56,20 @@ case class Grass(
 
 case class Rabbit(
     override val id: Int,
-    override val loc: Location)
-    extends Thing
+    override val loc: Location,
+    val fed: Int)
+    extends Thing {
+  
+  def this (id: Int, loc: Location) {
+    this(id, loc, 10)
+  }
+  
+  def fullyFed: Rabbit = Rabbit(id, loc, 10)
+  
+  def didntEat: Rabbit = Rabbit(id, loc, fed-1)
+  
+  def moveToward(target: Location): Rabbit = Rabbit(id, Thing.moveTowards(loc, target), fed)
+  
+  def isStarved: Boolean = fed <= 0
+}
 
