@@ -16,8 +16,17 @@ private[model] class SimulationImp(
 
   def next: Simulation = {
 
-    var eatenGrass: Set[Grass] = Set()
+    val rndNew = new scala.util.Random(rnd.self) 
+    var newNextThing = nextThing
+    // this is ugly; what's the good way to have auto incrementing serial ids in a functional environment
+    def createGrass(loc: Location): Grass = {
+      val g = Grass(newNextThing, loc)
+      newNextThing += 1
+      g
+    }
     
+    var eatenGrass: Set[Grass] = Set()
+
     // rabbits move towards grass and eats it
     val nextRs: List[Rabbit] = rs map { r =>
       // if the rabbit is close then eat it; otherwise move towards it
@@ -41,28 +50,26 @@ private[model] class SimulationImp(
     // remove all eaten grass
     val nextGs = gs.filter{ !eatenGrass.contains(_) }
 
-    val rndNew = new scala.util.Random(rnd.self) 
-    var newNextThing = nextThing
-    
     // grow new grass
     // partition into 10x10 sections
-    val p: Map[(Int, Int), List[Grass]] = nextGs.groupBy { g => ((g.loc.x/10).toInt*10, (g.loc.y/10).toInt*10) }
-    // each partition may generate a new Grass depending on how many grasses are in the partition
-    // TODO: we're not trying the partitions that are zero
-    val newGrass = p.flatMap{ case (loc: (Int,Int), gs: List[Grass]) => {
-      val pct =  gs.size match {
+    val sparseGroup: Map[(Int, Int), List[Grass]] = nextGs.groupBy { g => ((g.loc.x/10).toInt*10, (g.loc.y/10).toInt*10) }
+    
+    // tried implement with flatMap and it got ugly; still pretty ugly
+    val newGrass: Seq[Grass] = (for {
+      j <- 0 until height.toInt by 10
+      i <- 0 until width.toInt by 10
+    } yield {
+      val grassCount = sparseGroup.getOrElse( (i,j), List()).size
+      val pct =  grassCount match {
         case 0 => 5
         case 1 => 20
         case 2 => 50
         case _ => 70
       }
-      if (rnd.nextInt(100) < pct) {
-         val l = List(Grass(newNextThing, Location((loc._1+rndNew.nextInt(10)).toDouble, (loc._2+rndNew.nextInt(10)).toDouble)))
-         newNextThing += 1
-         l
-      } else List()
-    }}
-    
+      if (rnd.nextInt(100) < pct) List(createGrass(Location(i+rndNew.nextDouble*10, j+rndNew.nextDouble*10)))
+      else List()
+    }).flatten
+          
     new SimulationImp(
       iteration + 1,
       width,
