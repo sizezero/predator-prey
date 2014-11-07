@@ -12,7 +12,25 @@ object Main extends SimpleSwingApplication {
   var simulation: Simulation = SimulationFactory.random1
   val mapComponent = new swing.MapComponent(simulation)
   val iterationLabel = new Label(simulation.iteration.toString)
-  var isCalculatingNextIteration = false
+  def top = new MainFrame {
+    title = "Predator / Prey"
+    
+    val nextButton = new Button("Next") {
+      reactions += {
+        case ButtonClicked(_) => nextIteration
+      }
+    }
+    val b1 = new BoxPanel(Orientation.Vertical) {
+      contents.append(iterationLabel, nextButton)
+      border = Swing.EmptyBorder(5, 5, 5, 5)
+    }
+    contents = new BoxPanel(Orientation.Horizontal ) {
+      contents.append(b1, mapComponent)
+      border = Swing.EmptyBorder(5, 5, 5, 5)
+    }
+  }
+
+    var isCalculatingNextIteration = false
   
   def nextIteration {
     
@@ -21,7 +39,7 @@ object Main extends SimpleSwingApplication {
     // start in UI thread
     import ExecutionContext.Implicits.global
     // local variable may be necessary so that pooled thread does not see a stale value
-    val simulationFreshReference = simulation 
+    val simulationFreshReference = simulation
     if (!isCalculatingNextIteration) {
       isCalculatingNextIteration = true
       // could just call "new Thread(new Runnable{ def run() {}})" but future may use thread pooling
@@ -38,24 +56,6 @@ object Main extends SimpleSwingApplication {
           }
         })
       }
-    }
-  }
-  
-  def top = new MainFrame {
-    title = "Predator / Prey"
-    
-    val nextButton = new Button("Next") {
-      reactions += {
-        case ButtonClicked(_) => nextIteration
-      }
-    }
-    val b1 = new BoxPanel(Orientation.Vertical) {
-      contents.append(iterationLabel, nextButton)
-      border = Swing.EmptyBorder(5, 5, 5, 5)
-    }
-    contents = new BoxPanel(Orientation.Horizontal ) {
-      contents.append(b1, mapComponent)
-      border = Swing.EmptyBorder(5, 5, 5, 5)
     }
   }
   
