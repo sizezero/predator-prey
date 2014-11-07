@@ -11,19 +11,22 @@ object Main extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
   val mapComponent = new swing.MapComponent(simulation)
+  val iterationLabel = new Label(simulation.iteration.toString)
 
+  // TODO: currently this runs in the UI thread which is a bad idea
+  def nextIteration {
+    // TODO: since this takes quite a while we probably don't want it in the ui thread
+    simulation = simulation.next
+    iterationLabel.text = simulation.iteration.toString
+    mapComponent.setSimulation(simulation)
+  }
+  
   def top = new MainFrame {
     title = "Predator / Prey"
     
-    val iterationLabel = new Label(simulation.iteration.toString)
     val nextButton = new Button("Next") {
       reactions += {
-        case ButtonClicked(_) => {
-          // TODO: since this takes quite a while we probably don't want it in the ui thread
-          simulation = simulation.next
-          iterationLabel.text = simulation.iteration.toString
-          mapComponent.setSimulation(simulation)
-        }
+        case ButtonClicked(_) => nextIteration
       }
     }
     val b1 = new BoxPanel(Orientation.Vertical) {
@@ -35,4 +38,7 @@ object Main extends SimpleSwingApplication {
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
   }
+  
+  // start a timer task; do we have to wait until the window has started?
+  Timer(2000) { nextIteration }
 }
