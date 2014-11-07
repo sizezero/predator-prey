@@ -5,20 +5,40 @@ import scala.swing.event._
 // TODO: calling this package swing makes the other imports a bit wordier
 import org.kleemann.predprey.swing._
 import model._
-
+import scala.concurrent._
 
 object Main extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
   val mapComponent = new swing.MapComponent(simulation)
   val iterationLabel = new Label(simulation.iteration.toString)
-
-  // TODO: currently this runs in the UI thread which is a bad idea
+  var isCalculatingNextIteration = false
+  
   def nextIteration {
-    // TODO: since this takes quite a while we probably don't want it in the ui thread
-    simulation = simulation.next
-    iterationLabel.text = simulation.iteration.toString
-    mapComponent.setSimulation(simulation)
+    
+    // TODO: this is all a pretty ugly way to create a background task.  Look for a cleaner way
+    
+    // start in UI thread
+    import ExecutionContext.Implicits.global
+    // local variable may be necessary so that pooled thread does not see a stale value
+    val simulationFreshReference = simulation 
+    if (!isCalculatingNextIteration) {
+      isCalculatingNextIteration = true
+      // could just call "new Thread(new Runnable{ def run() {}})" but future may use thread pooling
+      future {
+        // switch to background non-UI thread
+        val nextSimulation = simulationFreshReference.next
+        javax.swing.SwingUtilities.invokeLater(new Runnable{
+          def run() {
+            // back to UI thread
+            simulation = nextSimulation
+            iterationLabel.text = simulation.iteration.toString
+            mapComponent.setSimulation(simulation)
+            isCalculatingNextIteration = false
+          }
+        })
+      }
+    }
   }
   
   def top = new MainFrame {
@@ -40,5 +60,5 @@ object Main extends SimpleSwingApplication {
   }
   
   // start a timer task; do we have to wait until the window has started?
-  Timer(2000) { nextIteration }
+  Timer(1000) { nextIteration }
 }
