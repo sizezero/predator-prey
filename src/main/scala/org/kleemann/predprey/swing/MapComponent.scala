@@ -1,10 +1,11 @@
 package org.kleemann.predprey.swing
 
 import swing._
+import scala.swing.event._
 import java.awt.{Color, Graphics2D, Point, geom}
 import org.kleemann.predprey.model._
 
-class MapComponent(var simulation: Simulation) extends Component {
+class MapComponent(var simulation: Simulation, val statusComponent: Label) extends Component {
   
   border = Swing.LineBorder(Color.BLACK)
   // TODO: example code has this without Dimension object "preferredSize = (300,200)"
@@ -13,6 +14,9 @@ class MapComponent(var simulation: Simulation) extends Component {
   // TODO: seems kind of dumb to set this both here and in the constructor
   def setSimulation(s: Simulation) {
     this.simulation = s
+    // find the new object in the simulation that corresponds to the old one
+    selectedThing = selectedThing.flatMap{ st =>  simulation.things.find{ t => t.id == st.id } }
+    statusComponent.text = selectedThing.getOrElse("").toString
     // I believe that since we haven't resized, we should just
     // repaint() instead of revalidate() or invalidate()
     repaint
@@ -28,6 +32,19 @@ class MapComponent(var simulation: Simulation) extends Component {
     _center = loc
     repaint
   }
+
+  // users can select a thing
+  var selectedThing: Option[Thing] = None
+  
+  listenTo(mouse.clicks)
+  reactions += {
+    case e: MousePressed  =>
+      // convert to model coords
+      val x = (e.point.x - size.width / 2.0) / scale + center.x
+      val y = (e.point.y - size.height / 2.0) / scale + center.y
+      // simple clicking; all objects are 1x1 in model size
+      selectedThing = simulation.things.find{ t => x>t.loc.x && x<t.loc.x+1 && y>t.loc.y && y<t.loc.y+1 }
+    }
   
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
@@ -65,6 +82,13 @@ class MapComponent(var simulation: Simulation) extends Component {
             g.setColor(Color.RED)
             g.fillRect(cx(w.loc.x), cy(w.loc.y), wolfeSize, wolfeSize)
           }
-        }  
+        }
+
+    selectedThing match {
+      case Some(thing) => 
+        g.setColor(Color.GREEN)
+        g.drawOval(cx(thing.loc.x)  - (scale / 2).toInt, cy(thing.loc.y) - (scale / 2).toInt, scale.toInt, scale.toInt)
+      case None =>
+    }
   }
 }

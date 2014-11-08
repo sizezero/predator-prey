@@ -12,7 +12,6 @@ class MiniMap(var simulation: Simulation, val mapComponent: MapComponent) extend
   preferredSize = new java.awt.Dimension(simulation.width.toInt, simulation.height.toInt)
 
   listenTo(mouse.clicks)
-
   reactions += {
     case e: MousePressed  =>
       // the mini-map is 1:1 model to screen coords so no conversion is necessary

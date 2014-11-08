@@ -10,9 +10,11 @@ import scala.concurrent._
 object Main extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
-  val mapComponent = new swing.MapComponent(simulation)
+  val statusComponent = new Label
+  val mapComponent = new swing.MapComponent(simulation, statusComponent)
   val miniMapComponent = new swing.MiniMap(simulation, mapComponent)
   val iterationLabel = new Label(simulation.iteration.toString)
+
   def top = new MainFrame {
     title = "Predator / Prey"
     
@@ -34,7 +36,7 @@ object Main extends SimpleSwingApplication {
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
     val right = new BorderPanel {
-      layout(new Label("Status")) = BorderPanel.Position.Center
+      layout(statusComponent) = BorderPanel.Position.Center
       layout(miniMapComponent) = BorderPanel.Position.South
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
