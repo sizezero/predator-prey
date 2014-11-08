@@ -11,7 +11,7 @@ object Main extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
   val mapComponent = new swing.MapComponent(simulation)
-  val miniMapComponent = new swing.MiniMap(simulation)
+  val miniMapComponent = new swing.MiniMap(simulation, mapComponent)
   val iterationLabel = new Label(simulation.iteration.toString)
   def top = new MainFrame {
     title = "Predator / Prey"

@@ -17,40 +17,54 @@ class MapComponent(var simulation: Simulation) extends Component {
     // repaint() instead of revalidate() or invalidate()
     repaint
   }
+
+  // screen coords = model coords * scale
+  val scale = 30.0
+  
+  // the center of the map in model coordinates
+  private var _center = Location(0.0, 0.0)
+  def center = _center
+  def center_= (loc: Location) {
+    _center = loc
+    repaint
+  }
   
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
 
-    // Provide function c() to convert coordinates from (startingWidth, startingHeight)
-    // to (size.width, size.height)
-    // The coordinates are scaled to maximum size within the component while preserving 
-    // the aspect ratio
-    val mapRatio = simulation.width.toDouble / simulation.height
-    val componentRatio = size.width.toDouble / size.height
-    val widthRatio = simulation.width.toDouble / size.width
-    val heightRatio = simulation.height.toDouble / size.height
-    val c: Int => Int = 
-      if (mapRatio > componentRatio) coord => (coord / widthRatio).toInt
-      else coord => (coord / heightRatio).toInt
+    // model bounds for viewport
+    val left = center.x - size.width / scale / 2.0
+    val right = center.x + size.width / scale / 2.0
+    val top = center.y - size.height / scale / 2.0
+    val bottom = center.y + size.height / scale / 2.0
+
+    // convert model coord to screen/viewport coord
+    def cx(x: Double): Int = ((x-left) * scale).toInt
+    def cy(y: Double): Int = ((y-top) * scale).toInt
     
     g.setColor(new Color(0xa56648)) // brown background
-    g.fillRect(0, 0, c(simulation.width.toInt), c(simulation.height.toInt))
+    g.fillRect(cx(0.0), cy(0.0), (simulation.width * scale).toInt, (simulation.height * scale).toInt)
     
-    // current things are 2x2 boxes
-    for(t <- simulation.things) t match {
-      case gr: Grass => {
-        g.setColor(Color.YELLOW)
-        g.fillRect(c(gr.loc.x.toInt), c(gr.loc.y.toInt), 2, 2)
-      }
-      case r: Rabbit => {
-        g.setColor(Color.BLUE)
-        g.fillRect(c(r.loc.x.toInt), c(r.loc.y.toInt), 2, 2)
-      }
-      case w: Wolf => {
-        g.setColor(Color.RED)
-        g.fillRect(c(w.loc.x.toInt), c(w.loc.y.toInt), 2, 2)
-      }
-    }
+    val grassSize = (scale/2).toInt
+    val rabbitSize = scale.toInt
+    val wolfeSize = rabbitSize
+    
+    // current things are boxes the size of a model dimension
+    for(t <- simulation.things)
+      if (t.loc.x > left-scale && t.loc.x < right+scale && t.loc.y > top-scale && t.loc.y < top+scale)
+        t match {
+          case gr: Grass => {
+            g.setColor(Color.YELLOW)
+            g.fillRect(cx(gr.loc.x), cy(gr.loc.y), grassSize, grassSize)
+          }
+          case r: Rabbit => {
+            g.setColor(Color.BLUE)
+            g.fillRect(cx(r.loc.x), cy(r.loc.y.toInt), rabbitSize, rabbitSize)
+          }
+          case w: Wolf => {
+            g.setColor(Color.RED)
+            g.fillRect(cx(w.loc.x), cy(w.loc.y), wolfeSize, wolfeSize)
+          }
+        }  
   }
-  
 }
