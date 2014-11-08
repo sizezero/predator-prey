@@ -34,9 +34,9 @@ private[model] class SimulationImp(
     // Wolves move towards rabbits and eats them
     val nextWs: List[Wolf] = ws map { w =>
       // if the wolf is close then eat it; otherwise move towards it
-      closestRabbit(rs, w.loc) match {
+      closest(rs, w.loc) match {
         case Some((r, d)) => {
-          if (adjacent(d)) {
+          if (Location.adjacent(d)) {
             // TODO if rabbit has already been eaten then wolf doesn't eat
             if (eatenRabbits.contains(r)) w.didntEat
             else {
@@ -71,9 +71,9 @@ private[model] class SimulationImp(
     // rabbits move towards grass and eats it
     val nextRs2: List[Rabbit] = nextRs map { r =>
       // if the rabbit is close then eat it; otherwise move towards it
-      closestGrass(gs, r.loc) match {
+      closest(gs, r.loc) match {
         case Some((g, d)) => {
-          if (adjacent(d)) {
+          if (Location.adjacent(d)) {
             // TODO if grass has already been eaten then rabbit doesn't eat
             if (eatenGrass.contains(g)) r.didntEat
             else {

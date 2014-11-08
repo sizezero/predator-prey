@@ -40,29 +40,20 @@ sealed trait Thing {
  */
 object Thing {
 
-  // find closest grass (linear search)
-  def closestGrass(gs: Seq[Grass], loc: Location): Option[Tuple2[Grass, Double]] =
-    gs.foldLeft[Option[Tuple2[Grass, Double]]](None) { (o, g) => {
-      val dNew = loc distance g.loc
+  /**
+   * Find the closest thing (linear search)
+   */
+  def closest[T <: Thing](ts: Seq[T], loc: Location): Option[Tuple2[T, Double]] =
+    ts.foldLeft[Option[Tuple2[T, Double]]](None) { (o, t) => {
+      val dNew = loc distance t.loc
       o match {
         case Some((_, dOld)) =>
-          if (dNew < dOld) Some(g, dNew)
+          if (dNew < dOld) Some(t, dNew)
           else o
-        case None => Some((g, dNew))
+        case None => Some((t, dNew))
       }
     }}
-  
-  // find closest rabbit (linear search)
-  def closestRabbit(rs: Seq[Rabbit], loc: Location): Option[Tuple2[Rabbit, Double]] =
-    rs.foldLeft[Option[Tuple2[Rabbit, Double]]](None) { (o, g) => {
-      val dNew = loc distance g.loc
-      o match {
-        case Some((_, dOld)) =>
-          if (dNew < dOld) Some(g, dNew)
-          else o
-        case None => Some((g, dNew))
-      }
-    }}
+
 }
 
 // lets try these with case classes; this will put most of the logic 
