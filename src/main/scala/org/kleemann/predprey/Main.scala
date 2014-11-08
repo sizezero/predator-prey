@@ -11,6 +11,7 @@ object Main extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
   val mapComponent = new swing.MapComponent(simulation)
+  val miniMapComponent = new swing.MiniMap(simulation)
   val iterationLabel = new Label(simulation.iteration.toString)
   def top = new MainFrame {
     title = "Predator / Prey"
@@ -28,12 +29,19 @@ object Main extends SimpleSwingApplication {
         }
       }
     }
-    val b1 = new BoxPanel(Orientation.Vertical) {
+    val left= new BoxPanel(Orientation.Vertical) {
       contents.append(iterationLabel, playPauseButton)
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
-    contents = new BoxPanel(Orientation.Horizontal ) {
-      contents.append(b1, mapComponent)
+    val right = new BorderPanel {
+      layout(new Label("Status")) = BorderPanel.Position.Center
+      layout(miniMapComponent) = BorderPanel.Position.South
+      border = Swing.EmptyBorder(5, 5, 5, 5)
+    }
+    contents = new BorderPanel {
+      layout(left) = BorderPanel.Position.West
+      layout(mapComponent) = BorderPanel.Position.Center
+      layout(right) = BorderPanel.Position.East
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
   }
@@ -58,6 +66,7 @@ object Main extends SimpleSwingApplication {
           simulation = nextSimulation
           iterationLabel.text = simulation.iteration.toString
           mapComponent.setSimulation(simulation)
+          miniMapComponent.setSimulation(simulation)
           isCalculatingNextIteration = false
         }
       }
