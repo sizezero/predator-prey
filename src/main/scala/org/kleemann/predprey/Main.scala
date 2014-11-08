@@ -66,4 +66,5 @@ object Main extends SimpleSwingApplication {
   
   // start a timer task; do we have to wait until the window has started?
   val timer = Timer(1000) { nextIteration }
+  timer.start
 }
