@@ -24,3 +24,14 @@ object Timer {
     t.start()
   }
 }
+
+/**
+ * <p>My version but this is a good place for it
+ */
+object InvokeLater {
+  def apply(op: => Unit) {
+    javax.swing.SwingUtilities.invokeLater(new Runnable {
+      def run() = op
+    })
+  }
+}

@@ -30,15 +30,14 @@ object Main extends SimpleSwingApplication {
     }
   }
 
-    var isCalculatingNextIteration = false
-  
+  var isCalculatingNextIteration = false
+
+  // Try to perform the next iteration in the background.  
+  // If a background iteration task is already running then skip it.
   def nextIteration {
-    
-    // TODO: this is all a pretty ugly way to create a background task.  Look for a cleaner way
-    
     // start in UI thread
     import ExecutionContext.Implicits.global
-    // local variable may be necessary so that pooled thread does not see a stale value
+    // local variable may be necessary so that pooled thread does not see a stale reference
     val simulationFreshReference = simulation
     if (!isCalculatingNextIteration) {
       isCalculatingNextIteration = true
@@ -46,15 +45,13 @@ object Main extends SimpleSwingApplication {
       future {
         // switch to background non-UI thread
         val nextSimulation = simulationFreshReference.next
-        javax.swing.SwingUtilities.invokeLater(new Runnable{
-          def run() {
-            // back to UI thread
-            simulation = nextSimulation
-            iterationLabel.text = simulation.iteration.toString
-            mapComponent.setSimulation(simulation)
-            isCalculatingNextIteration = false
-          }
-        })
+        InvokeLater {
+          // back to UI thread
+          simulation = nextSimulation
+          iterationLabel.text = simulation.iteration.toString
+          mapComponent.setSimulation(simulation)
+          isCalculatingNextIteration = false
+        }
       }
     }
   }
