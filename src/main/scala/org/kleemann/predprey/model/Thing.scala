@@ -44,6 +44,18 @@ object Thing {
         case None => Some((g, dNew))
       }
     }}
+  
+  // find closest rabbit (linear search)
+  def closestRabbit(rs: Seq[Rabbit], loc: Location): Option[Tuple2[Rabbit, Double]] =
+    rs.foldLeft[Option[Tuple2[Rabbit, Double]]](None) { (o, g) => {
+      val dNew = distance(loc, g.loc)
+      o match {
+        case Some((_, dOld)) =>
+          if (dNew < dOld) Some(g, dNew)
+          else o
+        case None => Some((g, dNew))
+      }
+    }}
 }
 
 // lets try these with case classes; this will put most of the logic 
@@ -69,6 +81,25 @@ case class Rabbit(
   def didntEat: Rabbit = Rabbit(id, loc, fed-1)
   
   def moveToward(target: Location): Rabbit = Rabbit(id, Thing.moveTowards(loc, target), fed)
+  
+  def isStarved: Boolean = fed <= 0
+}
+
+case class Wolf(
+    override val id: Int,
+    override val loc: Location,
+    val fed: Int)
+    extends Thing {
+  
+  def this (id: Int, loc: Location) {
+    this(id, loc, 30)
+  }
+  
+  def fullyFed: Wolf = Wolf(id, loc, 30)
+  
+  def didntEat: Wolf = Wolf(id, loc, fed-1)
+  
+  def moveToward(target: Location): Wolf = Wolf(id, Thing.moveTowards(loc, target), fed)
   
   def isStarved: Boolean = fed <= 0
 }

@@ -47,6 +47,10 @@ class MapComponent(var simulation: Simulation) extends Component {
         g.setColor(Color.BLUE)
         g.fillRect(c(r.loc.x.toInt), c(r.loc.y.toInt), 2, 2)
       }
+      case w: Wolf => {
+        g.setColor(Color.WHITE)
+        g.fillRect(c(w.loc.x.toInt), c(w.loc.y.toInt), 2, 2)
+      }
     }
   }
   

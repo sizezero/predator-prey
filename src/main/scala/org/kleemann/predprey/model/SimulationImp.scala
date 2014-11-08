@@ -10,22 +10,54 @@ private[model] class SimulationImp(
   var nextThing: Int,
   val rnd: scala.util.Random,
   val gs: List[Grass],
-  val rs: List[Rabbit]) extends Simulation {
+  val rs: List[Rabbit],
+  val ws: List[Wolf]) extends Simulation {
 
-  override val things = gs ++ rs
+  override val things = gs ++ rs ++ ws
 
   def next: Simulation = {
 
     val rndNew = new scala.util.Random(rnd.self) 
     var newNextThing = nextThing
 
-    // this is ugly; what's the good way to have auto incrementing serial ids in a functional environment
-    def createGrass(loc: Location): Grass = {
-      val g = Grass(newNextThing, loc)
+    def makeWolf(parent: Wolf): Wolf = {
+      val birthDistance = 5.0
+      val loc = Location(parent.loc.x + rnd.nextDouble*birthDistance, parent.loc.y + rnd.nextDouble*birthDistance)
+      val baby = new Wolf(newNextThing, loc)
       newNextThing += 1
-      g
+      baby
     }
-    def makeBaby(parent: Rabbit): Rabbit = {
+    
+    var eatenRabbits: Set[Rabbit] = Set()
+    var babyWolves: List[Wolf] = List()
+    
+    // Wolves move towards rabbits and eats them
+    val nextWs: List[Wolf] = ws map { w =>
+      // if the wolf is close then eat it; otherwise move towards it
+      closestRabbit(rs, w.loc) match {
+        case Some((r, d)) => {
+          if (adjacent(d)) {
+            // TODO if rabbit has already been eaten then wolf doesn't eat
+            if (eatenRabbits.contains(r)) w.didntEat
+            else {
+              // lots of side effects for code trying to be functional
+              // maybe functional code is bad for simulations?
+              eatenRabbits += r
+              babyWolves = makeWolf(w) :: babyWolves
+              w.fullyFed
+            }
+          }
+          else w.moveToward(r.loc).didntEat
+        }
+        // no rabbit then the wolf doesn't move
+        case None => w.didntEat
+      }
+    } filter { ! _.isStarved }
+
+    // remove all eaten rabbits
+    val nextRs = rs.filter{ !eatenRabbits.contains(_) }
+    
+    def makeRabbit(parent: Rabbit): Rabbit = {
       val birthDistance = 5.0
       val loc = Location(parent.loc.x + rnd.nextDouble*birthDistance, parent.loc.y + rnd.nextDouble*birthDistance)
       val baby = new Rabbit(newNextThing, loc)
@@ -37,7 +69,7 @@ private[model] class SimulationImp(
     var babyRabbits: List[Rabbit] = List()
     
     // rabbits move towards grass and eats it
-    val nextRs: List[Rabbit] = rs map { r =>
+    val nextRs2: List[Rabbit] = nextRs map { r =>
       // if the rabbit is close then eat it; otherwise move towards it
       closestGrass(gs, r.loc) match {
         case Some((g, d)) => {
@@ -48,7 +80,7 @@ private[model] class SimulationImp(
               // lots of side effects for code trying to be functional
               // maybe functional code is bad for simulations?
               eatenGrass += g
-              babyRabbits = makeBaby(r) :: babyRabbits
+              babyRabbits = makeRabbit(r) :: babyRabbits
               r.fullyFed
             }
           }
@@ -62,6 +94,13 @@ private[model] class SimulationImp(
     // remove all eaten grass
     val nextGs = gs.filter{ !eatenGrass.contains(_) }
 
+    // this is ugly; what's the good way to have auto incrementing serial ids in a functional environment
+    def createGrass(loc: Location): Grass = {
+      val g = Grass(newNextThing, loc)
+      newNextThing += 1
+      g
+    }
+    
     // grow new grass
     // partition into 10x10 sections
     val sparseGroup: Map[(Int, Int), List[Grass]] = nextGs.groupBy { g => ((g.loc.x/10).toInt*10, (g.loc.y/10).toInt*10) }
@@ -89,7 +128,8 @@ private[model] class SimulationImp(
       nextThing,
       rndNew,
       nextGs ++ newGrass,
-      nextRs ++ babyRabbits)
+      nextRs2 ++ babyRabbits,
+      nextWs ++ babyWolves)
   }
 }
 
@@ -122,7 +162,14 @@ object SimulationFactory {
       id += 1
     }
 
-    new SimulationImp(0, width, height, id, rnd, gs, rs)
+    var ws: List[Wolf] = List()
+    for (i <- 1 to 20) {
+      val loc = Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))
+      ws = new Wolf(id, loc) :: ws
+      id += 1
+    }
+
+    new SimulationImp(0, width, height, id, rnd, gs, rs, ws)
   }
 
 }
