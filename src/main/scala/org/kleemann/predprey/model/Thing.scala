@@ -3,7 +3,24 @@ package org.kleemann.predprey.model
 /**
  * A location, always in model coordinates; not device coordinates
  */
-case class Location(val x: Double, y: Double)
+case class Location(val x: Double, y: Double) {
+  def distance(that: Location): Double = {
+    val a = this.x - that.x
+    val b = this.y - that.y
+    math.sqrt(a * a + b * b)
+  }
+  
+  // fairly dumb move algorithm: move dist 0.5 in both x and y directions towards target
+  // will overshoot
+  def moveTowards(that: Location, dist: Double): Location = {
+    if (Location.adjacent(this distance that)) this
+    else Location(if (this.x > that.x) this.x - dist else this.x + dist, if (this.y > that.y) this.y - dist else this.y + dist)
+  }
+}
+
+object Location {
+  def adjacent(distance: Double): Boolean = math.abs(distance) < 2.0
+}
 
 /**
  * This is a thing that can exist within the simulation
@@ -23,25 +40,10 @@ sealed trait Thing {
  */
 object Thing {
 
-  def distance(loc1: Location, loc2: Location): Double = {
-    val a = loc1.x - loc2.x
-    val b = loc1.y - loc2.y
-    math.sqrt(a * a + b * b)
-  }
-
-  def adjacent(dist: Double): Boolean = math.abs(dist) < 2.0
-
-  // fairly dumb move algorithm: move dist 0.5 in both x and y directions towards target
-  // will overshoot
-  def moveTowards(loc1: Location, loc2: Location, dist: Double): Location = {
-    if (adjacent(distance(loc1, loc2))) loc1
-    else Location(if (loc1.x > loc2.x) loc1.x - dist else loc1.x + dist, if (loc1.y > loc2.y) loc1.y - dist else loc1.y + dist)
-  }
-  
   // find closest grass (linear search)
   def closestGrass(gs: Seq[Grass], loc: Location): Option[Tuple2[Grass, Double]] =
     gs.foldLeft[Option[Tuple2[Grass, Double]]](None) { (o, g) => {
-      val dNew = distance(loc, g.loc)
+      val dNew = loc distance g.loc
       o match {
         case Some((_, dOld)) =>
           if (dNew < dOld) Some(g, dNew)
@@ -53,7 +55,7 @@ object Thing {
   // find closest rabbit (linear search)
   def closestRabbit(rs: Seq[Rabbit], loc: Location): Option[Tuple2[Rabbit, Double]] =
     rs.foldLeft[Option[Tuple2[Rabbit, Double]]](None) { (o, g) => {
-      val dNew = distance(loc, g.loc)
+      val dNew = loc distance g.loc
       o match {
         case Some((_, dOld)) =>
           if (dNew < dOld) Some(g, dNew)
@@ -85,7 +87,7 @@ case class Rabbit(
   
   def didntEat: Rabbit = Rabbit(id, loc, fed-1)
   
-  def moveToward(target: Location): Rabbit = Rabbit(id, Thing.moveTowards(loc, target, 1.0), fed)
+  def moveToward(target: Location): Rabbit = Rabbit(id, loc.moveTowards(target, 1.0), fed)
   
   def isStarved: Boolean = fed <= 0
 }
@@ -107,7 +109,7 @@ case class Wolf(
   
   def didntEat: Wolf = Wolf(id, loc, fed-1, nextBirth)
   
-  def moveToward(target: Location): Wolf = Wolf(id, Thing.moveTowards(loc, target, 1.5), fed, nextBirth)
+  def moveToward(target: Location): Wolf = Wolf(id, loc.moveTowards(target, 1.5), fed, nextBirth)
   
   def isStarved: Boolean = fed <= 0
 }
