@@ -6,17 +6,23 @@ package org.kleemann.predprey.model
 case class Location(val x: Double, y: Double)
 
 /**
- * This is a thing that can exist within the simultion
+ * This is a thing that can exist within the simulation
  */
 sealed trait Thing {
+  
+  /**
+   * Every thing in a simulation has a unique id
+   */
   def id: Int
+  
   def loc: Location
 }
 
+/**
+ * Various functions--not sure where the best place is for these  
+ */
 object Thing {
 
-  // not sure where the best place is for these
-  
   def distance(loc1: Location, loc2: Location): Double = {
     val a = loc1.x - loc2.x
     val b = loc1.y - loc2.y

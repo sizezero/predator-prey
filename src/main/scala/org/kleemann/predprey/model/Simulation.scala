@@ -12,19 +12,18 @@ abstract class Simulation {
   val iteration: Int
   
   /**
-   * Returns the next value in the simulation.  TODO: may need a randomization
-   * State.
+   * Returns the next value in the simulation.
    */
   def next: Simulation
 
   /**
-   * The width in simulation units.  TODO: We should define what this means in real/word terms
+   * The width/height in simulation units.  TODO: We should define what this means in real/word terms
    */
   val width: Double
   val height: Double
   
   /**
-   * Iterate over everything.  We may want to filter by type.
+   * Iterate over every object in the simulation.
    */
   def things: Seq[Thing]
   

@@ -59,7 +59,7 @@ object Main extends SimpleSwingApplication {
       isCalculatingNextIteration = true
       // could just call "new Thread(new Runnable{ def run() {}})" but future may use thread pooling
       future {
-        // switch to background non-UI thread
+        // switch to background non-UI thread for long running calculation
         val nextSimulation = simulationFreshReference.next
         InvokeLater {
           // back to UI thread
