@@ -43,7 +43,7 @@ private[model] class SimulationImp(
               // lots of side effects for code trying to be functional
               // maybe functional code is bad for simulations?
               eatenRabbits += r
-              babyWolves = makeWolf(w) :: babyWolves
+              if (w.isPregnant) babyWolves = makeWolf(w) :: babyWolves
               w.fullyFed
             }
           }

@@ -27,10 +27,9 @@ object Thing {
 
   // fairly dumb move algorithm: move dist 0.5 in both x and y directions towards target
   // will overshoot
-  def moveTowards(loc1: Location, loc2: Location): Location = {
-    val d = 1.0
+  def moveTowards(loc1: Location, loc2: Location, dist: Double): Location = {
     if (adjacent(distance(loc1, loc2))) loc1
-    else Location(if (loc1.x > loc2.x) loc1.x - d else loc1.x + d, if (loc1.y > loc2.y) loc1.y - d else loc1.y + d)
+    else Location(if (loc1.x > loc2.x) loc1.x - dist else loc1.x + dist, if (loc1.y > loc2.y) loc1.y - dist else loc1.y + dist)
   }
   
   // find closest grass (linear search)
@@ -80,7 +79,7 @@ case class Rabbit(
   
   def didntEat: Rabbit = Rabbit(id, loc, fed-1)
   
-  def moveToward(target: Location): Rabbit = Rabbit(id, Thing.moveTowards(loc, target), fed)
+  def moveToward(target: Location): Rabbit = Rabbit(id, Thing.moveTowards(loc, target, 1.0), fed)
   
   def isStarved: Boolean = fed <= 0
 }
@@ -88,18 +87,21 @@ case class Rabbit(
 case class Wolf(
     override val id: Int,
     override val loc: Location,
-    val fed: Int)
+    val fed: Int,
+    val nextBirth: Int)
     extends Thing {
   
   def this (id: Int, loc: Location) {
-    this(id, loc, 30)
+    this(id, loc, 30, 5)
   }
   
-  def fullyFed: Wolf = Wolf(id, loc, 30)
+  def isPregnant: Boolean = nextBirth<=0
   
-  def didntEat: Wolf = Wolf(id, loc, fed-1)
+  def fullyFed: Wolf = Wolf(id, loc, 30, if (isPregnant) 5 else nextBirth-1)
   
-  def moveToward(target: Location): Wolf = Wolf(id, Thing.moveTowards(loc, target), fed)
+  def didntEat: Wolf = Wolf(id, loc, fed-1, nextBirth)
+  
+  def moveToward(target: Location): Wolf = Wolf(id, Thing.moveTowards(loc, target, 1.5), fed, nextBirth)
   
   def isStarved: Boolean = fed <= 0
 }
