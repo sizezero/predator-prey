@@ -15,13 +15,21 @@ object Main extends SimpleSwingApplication {
   def top = new MainFrame {
     title = "Predator / Prey"
     
-    val nextButton = new Button("Next") {
+    val playPauseButton = new Button("Pause") {
       reactions += {
-        case ButtonClicked(_) => nextIteration
+        case ButtonClicked(_) => {
+          if (timer.isRunning) {
+            timer.stop
+            text = "Play"
+          } else {
+            timer.start
+            text = "Pause"
+          }
+        }
       }
     }
     val b1 = new BoxPanel(Orientation.Vertical) {
-      contents.append(iterationLabel, nextButton)
+      contents.append(iterationLabel, playPauseButton)
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
     contents = new BoxPanel(Orientation.Horizontal ) {
@@ -57,5 +65,5 @@ object Main extends SimpleSwingApplication {
   }
   
   // start a timer task; do we have to wait until the window has started?
-  Timer(1000) { nextIteration }
+  val timer = Timer(1000) { nextIteration }
 }

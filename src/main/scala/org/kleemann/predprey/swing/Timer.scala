@@ -4,34 +4,30 @@ import scala.swing._
 import java.awt.{Font,Color}
 
 /**
- * <p>snagged from the interwebs
- * 
- * <p>https://otfried-cheong.appspot.com/scala/timers.html
- */
-
-object Time {
-  private val form = new java.text.SimpleDateFormat("HH:mm:ss")
-  def current = form.format(java.util.Calendar.getInstance().getTime)
-}
-
-object Timer {
-  def apply(interval: Int, repeats: Boolean = true)(op: => Unit) {
-    val timeOut = new javax.swing.AbstractAction() {
-      def actionPerformed(e : java.awt.event.ActionEvent) = op
-    }
-    val t = new javax.swing.Timer(interval, timeOut)
-    t.setRepeats(repeats)
-    t.start()
-  }
-}
-
-/**
- * <p>My version but this is a good place for it
+ * <p>Run some code one time from the swing event thread
  */
 object InvokeLater {
   def apply(op: => Unit) {
     javax.swing.SwingUtilities.invokeLater(new Runnable {
       def run() = op
     })
+  }
+}
+
+/**
+ * <p>Run some code at regular intervals from the swing event thread
+ */
+object Timer {
+
+  /**
+   * Return a normal swing Timer; already running
+   */
+  def apply(intervalMillis: Int)(op: => Unit): javax.swing.Timer = {
+    val timeOut = new javax.swing.AbstractAction() {
+      def actionPerformed(e : java.awt.event.ActionEvent) = op
+    }
+    val t = new javax.swing.Timer(intervalMillis, timeOut)
+    t.start
+    t
   }
 }
