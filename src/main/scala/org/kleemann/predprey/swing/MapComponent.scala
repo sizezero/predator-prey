@@ -59,10 +59,10 @@ class MapComponent(var simulation: Simulation, val statusComponent: TextArea) ex
     super.paintComponent(g)
 
     // model bounds for viewport
-    val left = center.x - size.width / scale / 2.0
-    val right = center.x + size.width / scale / 2.0
-    val top = center.y - size.height / scale / 2.0
-    val bottom = center.y + size.height / scale / 2.0
+    val left = center.x - size.width / 2.0 / scale 
+    val right = center.x + size.width  / 2.0 / scale
+    val top = center.y - size.height / 2.0 / scale
+    val bottom = center.y + size.height / 2.0 / scale
 
     // convert model coord to screen/viewport coord
     def cx(x: Double): Int = ((x-left) * scale).toInt
@@ -76,7 +76,7 @@ class MapComponent(var simulation: Simulation, val statusComponent: TextArea) ex
     // current things are boxes the size of a model dimension
     for(t <- simulation.things)
       // don't display thing if it is outside the viewport
-      if (t.loc.x > left-scale && t.loc.x < right+scale && t.loc.y > top-scale && t.loc.y < top+scale)
+      if (t.loc.x > left-scale && t.loc.x < right+scale && t.loc.y > top-scale && t.loc.y < bottom+scale)
         t match {
           case gr: Grass => {
             g.setColor(Color.YELLOW)
