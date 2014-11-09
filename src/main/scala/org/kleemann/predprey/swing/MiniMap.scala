@@ -48,6 +48,7 @@ class MiniMap(var simulation: Simulation, val mapComponent: MapComponent) extend
         g.setColor(Color.RED)
         g.fillRect(w.loc.x.toInt, w.loc.y.toInt, 2, 2)
       }
+      case _ =>
     }
 
     mapComponent.selectedThing match {

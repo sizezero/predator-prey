@@ -1,28 +1,6 @@
 package org.kleemann.predprey.model
 
 /**
- * A location, always in model coordinates; not device coordinates
- */
-case class Location(val x: Double, y: Double) {
-  def distance(that: Location): Double = {
-    val a = this.x - that.x
-    val b = this.y - that.y
-    math.sqrt(a * a + b * b)
-  }
-  
-  // fairly dumb move algorithm: move dist 0.5 in both x and y directions towards target
-  // will overshoot
-  def moveTowards(that: Location, dist: Double): Location = {
-    if (Location.adjacent(this distance that)) this
-    else Location(if (this.x > that.x) this.x - dist else this.x + dist, if (this.y > that.y) this.y - dist else this.y + dist)
-  }
-}
-
-object Location {
-  def adjacent(distance: Double): Boolean = math.abs(distance) < 2.0
-}
-
-/**
  * This is a thing that can exist within the simulation
  */
 sealed trait Thing {
@@ -32,7 +10,20 @@ sealed trait Thing {
    */
   def id: Int
   
+  // TODO: make this polymorphic
+  def setId(newId: Int): Thing 
+  
   def loc: Location
+
+  def isInSimulation = id != -1
+  
+  type Behavior[A <: Thing] = SimulationBuilder => A
+  
+  /**
+   * Behavior can modify the passed Simulation in any way.  Returns itself 
+   * which may be modified
+   */
+  val behavior: Behavior[Thing]
   
   /**
    * Add some newlines and indentation to make the objects easier to read
@@ -64,19 +55,6 @@ sealed trait Thing {
     sb.toString
   }
   
-  // this is shorter but way more obscure than the imperative approach
-  def prettyPrintFunctional: String = {
-    toString.foldLeft((0, "")){ (t, c) =>
-      t match {
-        case (i, s) => c match {
-          case '(' => (i+2, s + "(\n" + " " * (i+2))
-          case ')' => (i-2, s + ")\n" + " " * (i-2))
-          case ',' => (i, s + ")\n" + " " * i)
-          case _ => (i, s + c)
-        }
-      }
-    }._2
-  }
 }
 
 /**
@@ -106,7 +84,20 @@ object Thing {
 case class Grass(
     override val id: Int,
     override val loc: Location)
-    extends Thing
+    extends Thing {
+  
+  def this (loc: Location) {
+    this(-1, loc)
+  }
+  
+  def setId(newId: Int) = Grass(newId, loc)
+  
+  // A grass's behavior never changes
+  val behavior: Behavior[Grass] = (s: SimulationBuilder) => {
+    // a single grass does nothing
+    this
+  } 
+}
 
 case class Rabbit(
     override val id: Int,
@@ -114,9 +105,11 @@ case class Rabbit(
     val fed: Int)
     extends Thing {
   
-  def this (id: Int, loc: Location) {
-    this(id, loc, 10)
+  def this (loc: Location) {
+    this(-1, loc, 10)
   }
+  
+  def setId(newId: Int) = Rabbit(newId, loc, fed)
   
   def fullyFed: Rabbit = Rabbit(id, loc, 10)
   
@@ -125,6 +118,35 @@ case class Rabbit(
   def moveToward(target: Location): Rabbit = Rabbit(id, loc.moveTowards(target, 1.0), fed)
   
   def isStarved: Boolean = fed <= 0
+  
+  // A rabbit's behavior never changes
+  val behavior: Behavior[Rabbit] = (s: SimulationBuilder) => {
+    
+    // TODO: very inefficient to filter this for every Rabbit
+    val gs = s.ts.filter{ _ match {
+      case _: Grass => true
+      case _ => false
+    }}
+    
+    // rabbits eat close grass or move towards the nearest grass
+    Thing.closest(gs, loc) match {
+      case Some((g, d)) => {
+        if (Location.adjacent(d)) {
+          // TODO if rabbit has already been eaten then wolf doesn't eat
+          if (s.kill(g)) {
+            // make baby rabbit
+            val birthDistance = 5.0
+            val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
+            s.birth(new Rabbit(babyLoc))
+            fullyFed
+          }
+          else didntEat
+        }
+        else moveToward(g.loc).didntEat
+      }
+      case None => didntEat
+    }
+  } 
 }
 
 case class Wolf(
@@ -134,9 +156,11 @@ case class Wolf(
     val nextBirth: Int)
     extends Thing {
   
-  def this (id: Int, loc: Location) {
-    this(id, loc, 30, 5)
+  def this (loc: Location) {
+    this(-1, loc, 30, 5)
   }
+  
+  def setId(newId: Int) = Wolf(newId, loc, fed, nextBirth) 
   
   def isPregnant: Boolean = nextBirth<=0
   
@@ -147,5 +171,75 @@ case class Wolf(
   def moveToward(target: Location): Wolf = Wolf(id, loc.moveTowards(target, 1.5), fed, nextBirth)
   
   def isStarved: Boolean = fed <= 0
+  
+  // A wolfe's behavior never changes
+  val behavior: Behavior[Wolf] = (s: SimulationBuilder) => {
+    
+    // TODO: very inefficient to filter this for every Wolf
+    val rs = s.ts.filter{ _ match {
+      case _: Rabbit => true
+      case _ => false
+    }}
+    
+    // wolves eat close rabbits or move towards the nearest rabbit
+    Thing.closest(rs, loc) match {
+      case Some((r, d)) => {
+        if (Location.adjacent(d)) {
+          if (s.kill(r)) {
+            if (isPregnant) {
+              // make baby wolf
+              val birthDistance = 5.0
+              val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
+              s.birth(new Wolf(babyLoc))
+            }
+            fullyFed
+          }
+          else didntEat
+        }
+        else moveToward(r.loc).didntEat
+      }
+      case None => didntEat
+    }
+  }
+}
+  
+  /**
+   * <p>This object allows us to handle general, global behavior
+   */
+  case class World(val id: Int) extends Thing {
+    
+  val loc = Location(0, 0)
+    
+  def setId(newId: Int) = new World(newId) 
+    
+  // The world's behavior never changes
+  val behavior: Behavior[World] = (s: SimulationBuilder) => {
+    
+    // grow some grass
+
+    val gs = s.ts.flatMap{ _ match {
+      case g: Grass => List(g)
+      case _ => List()
+    }}
+
+    // partition into 10x10 sections
+    val sparseGroup: Map[(Int, Int), List[Grass]] = gs.groupBy { g => ((g.loc.x/10).toInt*10, (g.loc.y/10).toInt*10) }
+    
+    for {
+      j <- 0 until s.height.toInt by 10
+      i <- 0 until s.width.toInt by 10      
+    } {
+      val grassCount = sparseGroup.getOrElse( (i,j), List()).size
+      val pct =  grassCount match {
+        case 0 => 5
+        case 1 => 20
+        case 2 => 50
+        case _ => 70
+      }
+      if (s.rnd.nextInt(100) < pct) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
+    }
+    
+    this
+  }
 }
 
