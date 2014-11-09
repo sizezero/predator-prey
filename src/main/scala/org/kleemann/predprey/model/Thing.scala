@@ -33,6 +33,50 @@ sealed trait Thing {
   def id: Int
   
   def loc: Location
+  
+  /**
+   * Add some newlines and indentation to make the objects easier to read
+   */
+  def prettyPrint: String = {
+    // it would be interesting to see this functionally instead of imperatively
+    // I would imagine lots of objects would be generated in order to handle indents
+    var indent = 0
+    val sb = new StringBuilder() 
+    for (c <- toString) {
+      c match {
+        case '(' => {
+          sb.append("(\n")
+          indent += 2
+          sb.append(" " * indent)
+        }
+        case ')' => {
+          sb.append(")\n")
+          indent -= 2
+          sb.append(" " * indent)
+        }
+        case ',' => {
+          sb.append(",\n")
+          sb.append(" " * indent)
+        }
+        case _ => sb.append(c)
+      }
+    }
+    sb.toString
+  }
+  
+  // this is shorter but way more obscure than the imperative approach
+  def prettyPrintFunctional: String = {
+    toString.foldLeft((0, "")){ (t, c) =>
+      t match {
+        case (i, s) => c match {
+          case '(' => (i+2, s + "(\n" + " " * (i+2))
+          case ')' => (i-2, s + ")\n" + " " * (i-2))
+          case ',' => (i, s + ")\n" + " " * i)
+          case _ => (i, s + c)
+        }
+      }
+    }._2
+  }
 }
 
 /**

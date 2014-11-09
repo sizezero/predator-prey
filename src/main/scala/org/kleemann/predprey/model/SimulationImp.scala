@@ -125,7 +125,7 @@ private[model] class SimulationImp(
       iteration + 1,
       width,
       height,
-      nextThing,
+      newNextThing,
       rndNew,
       nextGs ++ newGrass,
       nextRs2 ++ babyRabbits,

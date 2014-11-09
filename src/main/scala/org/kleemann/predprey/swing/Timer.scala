@@ -15,7 +15,8 @@ object InvokeLater {
 }
 
 /**
- * <p>Run some code at regular intervals from the swing event thread
+ * <p>This allows you to construct javax.swing.Timer objects in 
+ * Scala friendly way
  */
 object Timer {
 

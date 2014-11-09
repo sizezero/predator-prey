@@ -10,7 +10,7 @@ import scala.concurrent._
 object Main extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
-  val statusComponent = new Label
+  val statusComponent = new TextArea
   val mapComponent = new swing.MapComponent(simulation, statusComponent)
   val miniMapComponent = new swing.MiniMap(simulation, mapComponent)
   val iterationLabel = new Label(simulation.iteration.toString)

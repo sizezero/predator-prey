@@ -2,10 +2,10 @@ package org.kleemann.predprey.swing
 
 import swing._
 import scala.swing.event._
-import java.awt.{Color, Graphics2D, Point, geom}
+import java.awt.{Color, Graphics2D, Point, geom, BasicStroke}
 import org.kleemann.predprey.model._
 
-class MapComponent(var simulation: Simulation, val statusComponent: Label) extends Component {
+class MapComponent(var simulation: Simulation, val statusComponent: TextArea) extends Component {
   
   border = Swing.LineBorder(Color.BLACK)
   // TODO: example code has this without Dimension object "preferredSize = (300,200)"
@@ -15,8 +15,7 @@ class MapComponent(var simulation: Simulation, val statusComponent: Label) exten
   def setSimulation(s: Simulation) {
     this.simulation = s
     // find the new object in the simulation that corresponds to the old one
-    selectedThing = selectedThing.flatMap{ st =>  simulation.things.find{ t => t.id == st.id } }
-    statusComponent.text = selectedThing.getOrElse("").toString
+    selectedThing = selectedThing.flatMap{ st => simulation.things.find{ t => t.id == st.id } }
     // I believe that since we haven't resized, we should just
     // repaint() instead of revalidate() or invalidate()
     repaint
@@ -24,9 +23,11 @@ class MapComponent(var simulation: Simulation, val statusComponent: Label) exten
 
   // screen coords = model coords * scale
   val scale = 30.0
+  // the width and height of a thing in model coords
+  val thingBounds = 1.0
   
   // the center of the map in model coordinates
-  private var _center = Location(0.0, 0.0)
+  private var _center = Location(simulation.width / 2, simulation.height / 2)
   def center = _center
   def center_= (loc: Location) {
     _center = loc
@@ -34,7 +35,12 @@ class MapComponent(var simulation: Simulation, val statusComponent: Label) exten
   }
 
   // users can select a thing
-  var selectedThing: Option[Thing] = None
+  private var _selectedThing: Option[Thing] = None
+  def selectedThing = _selectedThing
+  def selectedThing_= (st: Option[Thing]) {
+    _selectedThing = st
+    statusComponent.text = selectedThing.fold(""){ _.prettyPrint }
+  }
   
   listenTo(mouse.clicks)
   reactions += {
@@ -43,8 +49,11 @@ class MapComponent(var simulation: Simulation, val statusComponent: Label) exten
       val x = (e.point.x - size.width / 2.0) / scale + center.x
       val y = (e.point.y - size.height / 2.0) / scale + center.y
       // simple clicking; all objects are 1x1 in model size
-      selectedThing = simulation.things.find{ t => x>t.loc.x && x<t.loc.x+1 && y>t.loc.y && y<t.loc.y+1 }
-    }
+      // linear search
+      val hb = thingBounds / 2
+      selectedThing = simulation.things.find{ t => x>t.loc.x-hb && x<t.loc.x+hb && y>t.loc.y-hb && y<t.loc.y+hb }
+      repaint
+  }
   
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
@@ -62,32 +71,34 @@ class MapComponent(var simulation: Simulation, val statusComponent: Label) exten
     g.setColor(new Color(0xa56648)) // brown background
     g.fillRect(cx(0.0), cy(0.0), (simulation.width * scale).toInt, (simulation.height * scale).toInt)
     
-    val grassSize = (scale/2).toInt
-    val rabbitSize = scale.toInt
-    val wolfeSize = rabbitSize
+    val thingBoundsS = (thingBounds * scale).toInt
     
     // current things are boxes the size of a model dimension
     for(t <- simulation.things)
+      // don't display thing if it is outside the viewport
       if (t.loc.x > left-scale && t.loc.x < right+scale && t.loc.y > top-scale && t.loc.y < top+scale)
         t match {
           case gr: Grass => {
             g.setColor(Color.YELLOW)
-            g.fillRect(cx(gr.loc.x), cy(gr.loc.y), grassSize, grassSize)
+            g.fillRect(cx(gr.loc.x - thingBounds / 2), cy(gr.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
           }
           case r: Rabbit => {
             g.setColor(Color.BLUE)
-            g.fillRect(cx(r.loc.x), cy(r.loc.y.toInt), rabbitSize, rabbitSize)
+            g.fillRect(cx(r.loc.x - thingBounds / 2), cy(r.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
           }
           case w: Wolf => {
             g.setColor(Color.RED)
-            g.fillRect(cx(w.loc.x), cy(w.loc.y), wolfeSize, wolfeSize)
+            g.fillRect(cx(w.loc.x - thingBounds / 2), cy(w.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
           }
         }
 
+    // display a green circle around the selected item
     selectedThing match {
       case Some(thing) => 
         g.setColor(Color.GREEN)
-        g.drawOval(cx(thing.loc.x)  - (scale / 2).toInt, cy(thing.loc.y) - (scale / 2).toInt, scale.toInt, scale.toInt)
+        g.setStroke(new BasicStroke(3))
+        val d = 3.0
+        g.drawOval(cx(thing.loc.x - d/2), cy(thing.loc.y - d/2), (d * scale).toInt, (d * scale).toInt)
       case None =>
     }
   }
