@@ -214,10 +214,10 @@ case class Wolf(
   }
 }
   
-  /**
-   * <p>This object allows us to handle general, global behavior
-   */
-  case class World(val id: Int) extends Thing {
+/**
+ * <p>This object allows us to handle general, global behavior
+ */
+case class World(val id: Int) extends Thing {
     
   val loc = Location(0, 0)
     
