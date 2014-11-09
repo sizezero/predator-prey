@@ -121,30 +121,36 @@ case class Rabbit(
   
   // A rabbit's behavior never changes
   val behavior: Behavior[Rabbit] = (s: SimulationBuilder) => {
+    // if we have multiple behaviors, we may want to plug them into each other. 
+    //e.g. check for starvation before or after other behaviors
+    if (isStarved) {
+      s.kill(this)
+      this
+    } else { 
+      // TODO: very inefficient to filter this for every Rabbit
+      val gs = s.ts.filter{ _ match {
+        case _: Grass => true
+        case _ => false
+      }}
     
-    // TODO: very inefficient to filter this for every Rabbit
-    val gs = s.ts.filter{ _ match {
-      case _: Grass => true
-      case _ => false
-    }}
-    
-    // rabbits eat close grass or move towards the nearest grass
-    Thing.closest(gs, loc) match {
-      case Some((g, d)) => {
-        if (Location.adjacent(d)) {
-          // TODO if rabbit has already been eaten then wolf doesn't eat
-          if (s.kill(g)) {
-            // make baby rabbit
-            val birthDistance = 5.0
-            val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
-            s.birth(new Rabbit(babyLoc))
-            fullyFed
+      // rabbits eat close grass or move towards the nearest grass
+      Thing.closest(gs, loc) match {
+        case Some((g, d)) => {
+          if (Location.adjacent(d)) {
+            // TODO if rabbit has already been eaten then wolf doesn't eat
+            if (s.kill(g)) {
+              // make baby rabbit
+              val birthDistance = 5.0
+              val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
+              s.birth(new Rabbit(babyLoc))
+              fullyFed
+            }
+            else didntEat
           }
-          else didntEat
+          else moveToward(g.loc).didntEat
         }
-        else moveToward(g.loc).didntEat
+        case None => didntEat
       }
-      case None => didntEat
     }
   } 
 }
@@ -175,30 +181,35 @@ case class Wolf(
   // A wolfe's behavior never changes
   val behavior: Behavior[Wolf] = (s: SimulationBuilder) => {
     
-    // TODO: very inefficient to filter this for every Wolf
-    val rs = s.ts.filter{ _ match {
-      case _: Rabbit => true
-      case _ => false
-    }}
+    if (isStarved) {
+      s.kill(this)
+      this
+    } else { 
+      // TODO: very inefficient to filter this for every Wolf
+      val rs = s.ts.filter{ _ match {
+        case _: Rabbit => true
+        case _ => false
+      }}
     
-    // wolves eat close rabbits or move towards the nearest rabbit
-    Thing.closest(rs, loc) match {
-      case Some((r, d)) => {
-        if (Location.adjacent(d)) {
-          if (s.kill(r)) {
-            if (isPregnant) {
-              // make baby wolf
-              val birthDistance = 5.0
-              val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
-              s.birth(new Wolf(babyLoc))
+      // wolves eat close rabbits or move towards the nearest rabbit
+      Thing.closest(rs, loc) match {
+        case Some((r, d)) => {
+          if (Location.adjacent(d)) {
+            if (s.kill(r)) {
+              if (isPregnant) {
+                // make baby wolf
+                val birthDistance = 5.0
+                val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
+                s.birth(new Wolf(babyLoc))
+              }
+              fullyFed
             }
-            fullyFed
+            else didntEat
           }
-          else didntEat
+          else moveToward(r.loc).didntEat
         }
-        else moveToward(r.loc).didntEat
+        case None => didntEat
       }
-      case None => didntEat
     }
   }
 }
@@ -222,6 +233,8 @@ case class Wolf(
       case _ => List()
     }}
 
+    // TODO: think this is wrong; not 10x10 but checkerboard of square size 10x10
+    
     // partition into 10x10 sections
     val sparseGroup: Map[(Int, Int), List[Grass]] = gs.groupBy { g => ((g.loc.x/10).toInt*10, (g.loc.y/10).toInt*10) }
     
@@ -234,6 +247,7 @@ case class Wolf(
         case 0 => 5
         case 1 => 20
         case 2 => 50
+        case n: Int if n>10 => 0 // maximum grass growth
         case _ => 70
       }
       if (s.rnd.nextInt(100) < pct) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
