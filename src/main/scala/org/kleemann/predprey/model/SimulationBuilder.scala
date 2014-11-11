@@ -11,10 +11,12 @@ private[model] class SimulationBuilder(
     val height: Double,
     private var nextThingId: Int,
     val rnd: scala.util.Random,
-    val ts: List[Thing]) {
+    val ts: List[Thing],
+    val ms: Map[Int, List[Message]]) {
 
-    private val deadThings: scala.collection.mutable.Set[Int] = new scala.collection.mutable.HashSet()
-    private var newThings: List[Thing] = List()
+  private val deadThings: scala.collection.mutable.Set[Int] = new scala.collection.mutable.HashSet()
+  private var newThings: List[Thing] = List()
+  private val newMessages = collection.mutable.HashMap[Int, List[Message]]()
   
   /**
    * Returns true if the kill was successful; false if the Thing was already dead
@@ -23,6 +25,17 @@ private[model] class SimulationBuilder(
 
   def birth(t: Thing) { newThings = t.setId(newId) :: newThings }
 
+  /**
+   * Send a message to a thing that will be received for the next iteration
+   */
+  def send(t: Thing, m: Message) {
+    val v = newMessages.get(t.id) match {
+      case Some(l: List[Message]) => m :: l
+      case None => List(m)
+    } 
+    newMessages += (t.id -> v)
+  }
+  
   private def newId: Int = {
     val id = nextThingId
     nextThingId += 1
@@ -35,8 +48,7 @@ private[model] class SimulationBuilder(
   def mkSimulation: SimulationImp = {
 
     // iterate through every thing in an arbitrary order; returned value replaces old
-    // TODO: collect and resend messages
-    val nextThings = ts.map{ _.act(Nil, this)._1 }.filter{ t => !deadThings.contains(t.id) } ++ newThings
+    val nextThings = ts.map{ t => t.act(ms.getOrElse(t.id, Nil), this) }.filter{ t => !deadThings.contains(t.id) } ++ newThings
     
     new SimulationImp(
       iteration + 1,
@@ -44,6 +56,7 @@ private[model] class SimulationBuilder(
       height,
       nextThingId,
       rnd, // TODO: not safe; need to figure out how to deep copy this
-      nextThings)
+      nextThings.toList,
+      newMessages.toMap)
   }
 }

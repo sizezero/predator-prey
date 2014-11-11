@@ -14,7 +14,8 @@ private[model] class SimulationImp(
   override val height: Double,
   val nextThing: Int,
   val rnd: scala.util.Random,
-  override val things: List[Thing]) extends Simulation {
+  override val things: List[Thing],
+  val ms: Map[Int, List[Message]]) extends Simulation {
 
   def next: Simulation = {
     val sb = new SimulationBuilder(
@@ -23,7 +24,8 @@ private[model] class SimulationImp(
         height,
         nextThing,
         rnd,
-        things)
+        things,
+        ms)
 
     sb.mkSimulation
   }
@@ -68,7 +70,7 @@ object SimulationFactory {
     ts = new World(id) :: ts
     id += 1
     
-    new SimulationImp(0, width, height, id, rnd, ts)
+    new SimulationImp(0, width, height, id, rnd, ts, Map())
   }
 
 }

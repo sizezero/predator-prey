@@ -19,7 +19,7 @@ sealed trait Thing {
 
   def isInSimulation = id != -1
   
-  def act(ms: List[Message], s: SimulationBuilder): (Thing, List[(Thing, Message)])
+  def act(ms: List[Message], s: SimulationBuilder): Thing
   
   /**
    * Add some newlines and indentation to make the objects easier to read
@@ -95,9 +95,9 @@ case class Grass(
   def setId(newId: Int) = Grass(newId, loc)
   
   // A grass's behavior never changes
-  def act(ms: List[Message], s: SimulationBuilder): (Grass, List[(Thing, Message)]) = {
+  def act(ms: List[Message], s: SimulationBuilder): Grass = {
     // a single grass does nothing
-    (this, Nil)
+    this
   } 
 }
 
@@ -122,12 +122,12 @@ case class Rabbit(
   def isStarved: Boolean = fed <= 0
   
   // A rabbit's behavior never changes
-  def act(ms: List[Message], s: SimulationBuilder): (Rabbit, List[(Thing, Message)]) = {
+  def act(ms: List[Message], s: SimulationBuilder): Rabbit = {
     // if we have multiple behaviors, we may want to plug them into each other. 
     //e.g. check for starvation before or after other behaviors
     if (isStarved) {
       s.kill(this)
-      (this, Nil)
+      this
     } else { 
       // TODO: very inefficient to filter this for every Rabbit
       val gs = s.ts.filter{ _ match {
@@ -145,13 +145,13 @@ case class Rabbit(
               val birthDistance = 5.0
               val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
               s.birth(new Rabbit(babyLoc))
-              (fullyFed, Nil)
+              fullyFed
             }
-            else (didntEat, Nil)
+            else didntEat
           }
-          else (moveToward(g.loc).didntEat, Nil)
+          else moveToward(g.loc).didntEat
         }
-        case None => (didntEat, Nil)
+        case None => didntEat
       }
     }
   } 
@@ -181,11 +181,11 @@ case class Wolf(
   def isStarved: Boolean = fed <= 0
   
   // A wolfe's behavior never changes
-  def act(ms: List[Message], s: SimulationBuilder): (Wolf, List[(Thing, Message)]) = {
+  def act(ms: List[Message], s: SimulationBuilder): Wolf = {
     
     if (isStarved) {
       s.kill(this)
-      (this, Nil)
+      this
     } else { 
       // TODO: very inefficient to filter this for every Wolf
       val rs = s.ts.filter{ _ match {
@@ -204,13 +204,13 @@ case class Wolf(
                 val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
                 s.birth(new Wolf(babyLoc))
               }
-              (fullyFed, Nil)
+              fullyFed
             }
-            else (didntEat, Nil)
+            else didntEat
           }
-          else (moveToward(r.loc).didntEat, Nil)
+          else moveToward(r.loc).didntEat
         }
-        case None => (didntEat, Nil)
+        case None => didntEat
       }
     }
   }
@@ -226,7 +226,7 @@ case class World(val id: Int) extends Thing {
   def setId(newId: Int) = new World(newId) 
     
   // The world's behavior never changes
-  def act(ms: List[Message], s: SimulationBuilder): (World, List[(Thing, Message)]) = {
+  def act(ms: List[Message], s: SimulationBuilder): World = {
     
     // grow some grass
 
@@ -255,7 +255,7 @@ case class World(val id: Int) extends Thing {
       if (s.rnd.nextInt(100) < pct) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
     }
     
-    (this, Nil)
+    this
   }
 }
 
