@@ -1,7 +1,7 @@
 package org.kleemann.predprey.model
 
 import scala.collection.mutable.MutableList
-import Thing._
+import things._
 
 /**
  * <p>An immutable implementation of Simulation
@@ -43,7 +43,7 @@ object SimulationFactory {
 
     var ts: List[Thing] = List()
     
-    for (i <- 1 to 50) {
+    for (i <- 1 to 100) {
       // need to play around with the list append syntax
       // doesn't work
       // l += i
@@ -55,7 +55,7 @@ object SimulationFactory {
       id += 1
     }
 
-    for (i <- 1 to 20) {
+    for (i <- 1 to 50) {
       val loc = Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))
       ts = new Rabbit(loc).setId(id) :: ts
       id += 1

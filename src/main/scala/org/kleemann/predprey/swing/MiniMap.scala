@@ -4,6 +4,7 @@ import swing._
 import scala.swing.event._
 import java.awt.{Color, Graphics2D, Point, geom}
 import org.kleemann.predprey.model._
+import org.kleemann.predprey.model.things._
 
 class MiniMap(var simulation: Simulation, val mapComponent: MapComponent) extends Component {
   
