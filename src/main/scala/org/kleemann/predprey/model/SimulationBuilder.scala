@@ -35,7 +35,8 @@ private[model] class SimulationBuilder(
   def mkSimulation: SimulationImp = {
 
     // iterate through every thing in an arbitrary order; returned value replaces old
-    val nextThings = ts.map{ _.behavior(this) }.filter{ t => !deadThings.contains(t.id) } ++ newThings
+    // TODO: collect and resend messages
+    val nextThings = ts.map{ _.act(Nil, this)._1 }.filter{ t => !deadThings.contains(t.id) } ++ newThings
     
     new SimulationImp(
       iteration + 1,
