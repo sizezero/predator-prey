@@ -91,6 +91,10 @@ class MapComponent(var simulation: Simulation, val statusComponent: TextArea) ex
             g.setColor(Color.RED)
             g.fillRect(cx(w.loc.x - thingBounds / 2), cy(w.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
           }
+          case m: Meat => {
+            g.setColor(Color.MAGENTA)
+            g.fillRect(cx(m.loc.x - thingBounds / 2), cy(m.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
+          }
           case _ =>
         }
 

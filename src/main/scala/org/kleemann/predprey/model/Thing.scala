@@ -3,6 +3,11 @@ package org.kleemann.predprey.model
 trait Message
 
 /**
+ * Generic attack message.  This could be made more specific (e.g. Bite, Stab) if we need it
+ */
+object Attack extends Message
+
+/**
  * This is a thing that can exist within the simulation
  */
 trait Thing {
@@ -71,12 +76,14 @@ object Thing {
         case None => Some((t, dNew))
       }
     }}
-
-  /**
-   * <p>Behavior can modify the passed Simulation in any way. 
-   * Takes a particular Thing, SimulationBuilder, and messages passed to this thing
-   * returns a new thing and a list of messages to send to other things
-   */
-  type Behavior[A <: Thing] = (A, List[Message], SimulationBuilder) => (Thing, List[(Thing, Message)])
 }
 
+/**
+ * <p>Behavior can modify the passed Simulation in any way. 
+ * Takes a particular Thing, SimulationBuilder, and messages passed to this thing
+ * returns a new thing and a list of messages to send to other things
+ */
+trait Behavior[A <: Thing] {
+  
+  def act(a: A, ms: List[Message], s: SimulationBuilder): A  
+}

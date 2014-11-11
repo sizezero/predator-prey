@@ -36,20 +36,15 @@ class MiniMap(var simulation: Simulation, val mapComponent: MapComponent) extend
     g.fillRect(0, 0, simulation.width.toInt, simulation.height.toInt)
     
     // current things are 1x1 boxes
-    for(t <- simulation.things) t match {
-      case gr: Grass => {
-        g.setColor(Color.YELLOW)
-        g.fillRect(gr.loc.x.toInt, gr.loc.y.toInt, 1, 1)
+    for(t <- simulation.things) {
+      t match {
+        case gr: Grass => g.setColor(Color.YELLOW)
+        case r: Rabbit => g.setColor(Color.BLUE)
+        case w: Wolf => g.setColor(Color.RED)
+        case m: Meat => g.setColor(Color.MAGENTA)
+        case _ => g.setColor(Color.WHITE)
       }
-      case r: Rabbit => {
-        g.setColor(Color.BLUE)
-        g.fillRect(r.loc.x.toInt, r.loc.y.toInt, 1, 1)
-      }
-      case w: Wolf => {
-        g.setColor(Color.RED)
-        g.fillRect(w.loc.x.toInt, w.loc.y.toInt, 2, 2)
-      }
-      case _ =>
+      g.fillRect(t.loc.x.toInt, t.loc.y.toInt, 1, 1)
     }
 
     mapComponent.selectedThing match {

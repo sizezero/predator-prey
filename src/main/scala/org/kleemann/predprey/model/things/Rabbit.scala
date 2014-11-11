@@ -24,12 +24,14 @@ case class Rabbit(
   
   // A rabbit's behavior never changes
   def act(ms: List[Message], s: SimulationBuilder): Rabbit = {
-    // if we have multiple behaviors, we may want to plug them into each other. 
-    //e.g. check for starvation before or after other behaviors
-    if (isStarved) {
+     // don't differentiate between one or more attacks
+     val isAttacked = ms.exists{ _ == Attack }
+    
+    if (isStarved || isAttacked) {
       s.kill(this)
+      s.birth(new Meat(loc))
       this
-    } else { 
+    } else {
       // TODO: very inefficient to filter this for every Rabbit
       val gs = s.ts.filter{ _ match {
         case _: Grass => true

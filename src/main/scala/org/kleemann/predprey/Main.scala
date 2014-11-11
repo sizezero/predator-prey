@@ -71,6 +71,8 @@ object Main extends SimpleSwingApplication {
           miniMapComponent.setSimulation(simulation)
           isCalculatingNextIteration = false
         }
+      }.onFailure {
+        case t => println("an error has occurred "+t.getMessage)
       }
     }
   }

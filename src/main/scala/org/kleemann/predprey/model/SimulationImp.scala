@@ -73,4 +73,42 @@ object SimulationFactory {
     new SimulationImp(0, width, height, id, rnd, ts, Map())
   }
 
+  def small1: SimulationImp = {
+    val width = 10.0
+    val height = 10.0
+    var id: Int = 0
+    val rnd = new scala.util.Random()
+
+    var ts: List[Thing] = List()
+    
+    for (i <- 1 to 10) {
+      // need to play around with the list append syntax
+      // doesn't work
+      // l += i
+      // does work but ugly
+      // l = l :+ i
+      // does work but ugly
+      // l = i :: l
+      ts = new Grass(Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))).setId(id) :: ts
+      id += 1
+    }
+
+    for (i <- 1 to 4) {
+      val loc = Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))
+      ts = new Rabbit(loc).setId(id) :: ts
+      id += 1
+    }
+
+    for (i <- 1 to 1) {
+      val loc = Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))
+      ts = new Wolf(loc).setId(id) :: ts
+      id += 1
+    }
+
+    ts = new World(id) :: ts
+    id += 1
+    
+    new SimulationImp(0, width, height, id, rnd, ts, Map())
+  }
+
 }
