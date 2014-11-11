@@ -1,5 +1,7 @@
 package org.kleemann.predprey.model
 
+trait Message
+
 /**
  * This is a thing that can exist within the simulation
  */
@@ -17,13 +19,7 @@ sealed trait Thing {
 
   def isInSimulation = id != -1
   
-  type Behavior[A <: Thing] = SimulationBuilder => A
-  
-  /**
-   * Behavior can modify the passed Simulation in any way.  Returns itself 
-   * which may be modified
-   */
-  val behavior: Behavior[Thing]
+  val behavior: Thing.Behavior[Thing]
   
   /**
    * Add some newlines and indentation to make the objects easier to read
@@ -76,6 +72,12 @@ object Thing {
       }
     }}
 
+  /**
+   * <p>Behavior can modify the passed Simulation in any way. 
+   * Takes a particular Thing, SimulationBuilder, and messages passed to this thing
+   * returns a new thing and a list of messages to send to other things
+   */
+  type Behavior[A <: Thing] = (A, List[Message], SimulationBuilder) => (A, List[(Thing, Message)])
 }
 
 // lets try these with case classes; this will put most of the logic 
@@ -93,9 +95,9 @@ case class Grass(
   def setId(newId: Int) = Grass(newId, loc)
   
   // A grass's behavior never changes
-  val behavior: Behavior[Grass] = (s: SimulationBuilder) => {
+  val behavior: Thing.Behavior[Grass] = (g: Grass, ms: List[Message], s: SimulationBuilder) => {
     // a single grass does nothing
-    this
+    (this, Nil)
   } 
 }
 
@@ -120,12 +122,12 @@ case class Rabbit(
   def isStarved: Boolean = fed <= 0
   
   // A rabbit's behavior never changes
-  val behavior: Behavior[Rabbit] = (s: SimulationBuilder) => {
+  val behavior: Thing.Behavior[Rabbit] = (r: Rabbit, ms: List[Message], s: SimulationBuilder) => {
     // if we have multiple behaviors, we may want to plug them into each other. 
     //e.g. check for starvation before or after other behaviors
     if (isStarved) {
-      s.kill(this)
-      this
+      s.kill(r)
+      (r, List())
     } else { 
       // TODO: very inefficient to filter this for every Rabbit
       val gs = s.ts.filter{ _ match {
@@ -134,7 +136,7 @@ case class Rabbit(
       }}
     
       // rabbits eat close grass or move towards the nearest grass
-      Thing.closest(gs, loc) match {
+      Thing.closest(gs, r.loc) match {
         case Some((g, d)) => {
           if (Location.adjacent(d)) {
             // TODO if rabbit has already been eaten then wolf doesn't eat
@@ -143,13 +145,13 @@ case class Rabbit(
               val birthDistance = 5.0
               val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
               s.birth(new Rabbit(babyLoc))
-              fullyFed
+              (r.fullyFed, Nil)
             }
-            else didntEat
+            else (r.didntEat, Nil)
           }
-          else moveToward(g.loc).didntEat
+          else (r.moveToward(g.loc).didntEat, Nil)
         }
-        case None => didntEat
+        case None => (r.didntEat, Nil)
       }
     }
   } 
@@ -179,11 +181,11 @@ case class Wolf(
   def isStarved: Boolean = fed <= 0
   
   // A wolfe's behavior never changes
-  val behavior: Behavior[Wolf] = (s: SimulationBuilder) => {
+  val behavior: Thing.Behavior[Wolf] = (w: Wolf, ms: List[Message], s: SimulationBuilder) => {
     
     if (isStarved) {
-      s.kill(this)
-      this
+      s.kill(w)
+      (this, Nil)
     } else { 
       // TODO: very inefficient to filter this for every Wolf
       val rs = s.ts.filter{ _ match {
@@ -192,23 +194,23 @@ case class Wolf(
       }}
     
       // wolves eat close rabbits or move towards the nearest rabbit
-      Thing.closest(rs, loc) match {
+      Thing.closest(rs, w.loc) match {
         case Some((r, d)) => {
           if (Location.adjacent(d)) {
             if (s.kill(r)) {
-              if (isPregnant) {
+              if (w.isPregnant) {
                 // make baby wolf
                 val birthDistance = 5.0
                 val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
                 s.birth(new Wolf(babyLoc))
               }
-              fullyFed
+              (w.fullyFed, Nil)
             }
-            else didntEat
+            else (w.didntEat, Nil)
           }
-          else moveToward(r.loc).didntEat
+          else (w.moveToward(r.loc).didntEat, Nil)
         }
-        case None => didntEat
+        case None => (w.didntEat, Nil)
       }
     }
   }
@@ -224,7 +226,7 @@ case class World(val id: Int) extends Thing {
   def setId(newId: Int) = new World(newId) 
     
   // The world's behavior never changes
-  val behavior: Behavior[World] = (s: SimulationBuilder) => {
+  val behavior: Thing.Behavior[World] = (w: World, ms: List[Message], s: SimulationBuilder) => {
     
     // grow some grass
 
@@ -253,7 +255,7 @@ case class World(val id: Int) extends Thing {
       if (s.rnd.nextInt(100) < pct) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
     }
     
-    this
+    (this, Nil)
   }
 }
 
