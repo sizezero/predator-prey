@@ -26,4 +26,7 @@ object Grass {
   private val conf = com.typesafe.config.ConfigFactory.load()
 
   val Size = conf.getDouble(s"grass.size")
+  
+  // check for growth after this many iterations
+  val GrowthRate = conf.getInt(s"grass.growth-rate")
 }

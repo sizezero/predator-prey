@@ -5,22 +5,29 @@ import org.kleemann.predprey.model._
 /**
  * <p>This is not a visible object that exists in the world but the behavior of this singleton allows us to handle general, global behavior
  */
-class World(val id: Int) extends Thing {
-    
+class World(val id: Int, val nextGrassGrowth: Int) extends Thing {
+
+  def this() {
+    this(-1, Grass.GrowthRate)
+  }
+  
   val loc = Location(0, 0)
     
-  override def setId(newId: Int) = new World(newId)
+  override def setId(newId: Int) = new World(newId, nextGrassGrowth)
   
   override val size = 1.0 // not used
     
   // The world's behavior never changes
   def act(ms: List[Message], s: SimulationBuilder): World = {
     
+    if (nextGrassGrowth>0) 
+      return new World(id, nextGrassGrowth-1) 
+      
     // grow some grass
 
-    val gs = s.ts.flatMap{ _ match {
+    val gs: List[Grass] = s.ts.flatMap{ _ match {
       case g: Grass => List(g)
-      case _ => List()
+      case _ => Nil
     }}
 
     // TODO: think this is wrong; not 10x10 but checkerboard of square size 10x10
@@ -36,11 +43,12 @@ class World(val id: Int) extends Thing {
       if (s.rnd.nextDouble < World.grassCountToPercentage(grassCount)) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
     }
     
-    this
+    new World(id, Grass.GrowthRate)
   }
 }
 
 object World {
+  
   /**
    * Given the number of grass in a region of the screen, what is the percentage that a new grass will grow?
    */

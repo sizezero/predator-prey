@@ -71,7 +71,7 @@ object SimulationFactory {
       id += 1
     }
 
-    ts = new World(id) :: ts
+    ts = new World().setId(id) :: ts
     id += 1
     
     new SimulationImp(0, width, height, id, rnd, ts, Map())
