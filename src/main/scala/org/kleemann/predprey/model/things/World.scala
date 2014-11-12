@@ -30,33 +30,20 @@ class World(val id: Int, val nextGrassGrowth: Int) extends Thing {
       case _ => Nil
     }}
 
-    // TODO: think this is wrong; not 10x10 but checkerboard of square size 10x10
-    
-    // partition into 10x10 sections
-    val sparseGroup: Map[(Int, Int), List[Grass]] = gs.groupBy { g => ((g.loc.x/10).toInt*10, (g.loc.y/10).toInt*10) }
+    // partition into sections of size 20x20
+    val sparseGroup: Map[(Int, Int), List[Grass]] = gs.groupBy { g => 
+      ((g.loc.x/Grass.GrowthGridSize).toInt*Grass.GrowthGridSize, (g.loc.y/Grass.GrowthGridSize).toInt*Grass.GrowthGridSize)
+    }
     
     for {
-      j <- 0 until s.height.toInt by 10
-      i <- 0 until s.width.toInt by 10      
+      j <- 0 until s.height.toInt by Grass.GrowthGridSize
+      i <- 0 until s.width.toInt by Grass.GrowthGridSize      
     } {
-      val grassCount = sparseGroup.getOrElse( (i,j), List()).size
-      if (s.rnd.nextDouble < World.grassCountToPercentage(grassCount)) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
+      val grassCount = sparseGroup.getOrElse( (i,j), Nil).size
+      if (s.rnd.nextDouble < Grass.countToPercentage(grassCount))
+        s.birth(new Grass(Location(i+s.rnd.nextDouble*Grass.GrowthGridSize, j+s.rnd.nextDouble*Grass.GrowthGridSize)))
     }
     
     new World(id, Grass.GrowthRate)
-  }
-}
-
-object World {
-  
-  /**
-   * Given the number of grass in a region of the screen, what is the percentage that a new grass will grow?
-   */
-  private def grassCountToPercentage(count: Int): Double = count match {
-    case 0 => 5
-    case 1 => 20
-    case 2 => 50
-    case n: Int if n>10 => 0 // maximum grass growth
-    case _ => 70
   }
 }

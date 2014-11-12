@@ -29,4 +29,15 @@ object Grass {
   
   // check for growth after this many iterations
   val GrowthRate = conf.getInt(s"grass.growth-rate")
+  
+  val GrowthGridSize = conf.getInt(s"grass.growth-grid-size")
+  
+  def countToPercentage(count: Int): Double = count match {
+    case 0 => 5
+    case 1 => 20
+    case 2 => 50
+    case n: Int if n>10 => 0 // maximum grass growth
+    case _ => 70
+  }
+
 }
