@@ -16,7 +16,7 @@ case class Wolf(
   
   override def setId(newId: Int) = Wolf(newId, loc, fed, nextBirth, behavior) 
   
-  override val size = 3.0
+  override val size = Wolf.Size
   
   def isPregnant: Boolean = nextBirth<=0
   
@@ -43,12 +43,14 @@ case class Wolf(
 }
 
 object Wolf {
+  private val conf = com.typesafe.config.ConfigFactory.load()
   
-  val Full = 30
-  val Hungry = 20
-  val BirthDelay = 10
-  val MoveDistance = 1.5
-  val BirthDistance = 5.0
+  val Size = conf.getDouble(s"wolf.size")
+  val Full = conf.getInt(s"wolf.full")
+  val Hungry = conf.getInt(s"wolf.hungry")
+  val MoveDistance = conf.getDouble(s"wolf.move-distance")
+  val BirthDelay = conf.getInt(s"wolf.birth-delay")
+  val BirthDistance = conf.getDouble(s"wolf.birth-distance")
   
   object Prowling extends Behavior[Wolf] {
 

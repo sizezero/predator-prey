@@ -17,7 +17,7 @@ case class Meat(
   
   override def setId(newId: Int) = Meat(newId, loc, durability) 
   
-  override val size = 0.5
+  override val size = Meat.Size
 
   def age: Meat = if (durability==0) this else Meat(id, loc, durability-1)
   
@@ -29,5 +29,8 @@ case class Meat(
 }
 
 object Meat {
-    val Durability = 10
+  private val conf = com.typesafe.config.ConfigFactory.load()
+
+  val Size = conf.getDouble(s"meat.size")
+  val Durability = conf.getInt(s"meat.durability")
 }

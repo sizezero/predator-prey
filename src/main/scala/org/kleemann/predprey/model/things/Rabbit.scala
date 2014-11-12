@@ -63,9 +63,12 @@ case class Rabbit(
 }
 
 object Rabbit {
-  val Full = 30
-  val MoveDistance = 1.0
-  val ChanceOfBaby = 0.25
-  val BirthDistance = 5.0
+  private val conf = com.typesafe.config.ConfigFactory.load()
+  
+  val Size = conf.getDouble(s"rabbit.size")
+  val Full = conf.getInt(s"rabbit.full")
+  val MoveDistance = conf.getDouble(s"rabbit.move-distance")
+  val ChanceOfBaby = conf.getDouble(s"rabbit.chance-of-baby")
+  val BirthDistance = conf.getDouble(s"rabbit.birth-distance")
 }
 
