@@ -17,7 +17,9 @@ abstract class Simulation {
   def next: Simulation
 
   /**
-   * The width/height in simulation units.  TODO: We should define what this means in real/word terms
+   * The width/height in simulation units.  
+   * 1 unit == 10 feet at a close up view.
+   * At a mini-map view this is distorted as towns will end up being much closer than normal.
    */
   val width: Double
   val height: Double

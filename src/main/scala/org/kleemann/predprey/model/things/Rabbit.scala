@@ -9,16 +9,18 @@ case class Rabbit(
     extends Thing {
   
   def this (loc: Location) {
-    this(-1, loc, 10)
+    this(-1, loc, Rabbit.Full)
   }
   
-  def setId(newId: Int) = Rabbit(newId, loc, fed)
+  override def setId(newId: Int) = Rabbit(newId, loc, fed)
+
+  override val size = 1.0
   
-  def fullyFed: Rabbit = Rabbit(id, loc, 10)
+  def fullyFed: Rabbit = Rabbit(id, loc, Rabbit.Full)
   
   def didntEat: Rabbit = Rabbit(id, loc, fed-1)
   
-  def moveToward(target: Location): Rabbit = Rabbit(id, loc.moveTowards(target, 1.0), fed)
+  def moveToward(target: Thing): Rabbit = Rabbit(id, toward(target, Rabbit.MoveDistance), fed)
   
   def isStarved: Boolean = fed <= 0
   
@@ -41,23 +43,29 @@ case class Rabbit(
       // rabbits eat close grass or move towards the nearest grass
       Thing.closest(gs, loc) match {
         case Some((g, d)) => {
-          if (Location.adjacent(d)) {
+          if (adjacent(g)) {
             if (s.kill(g)) {
-              if (s.rnd.nextInt(100) < 25) { // 25% chance of a baby
+              if (s.rnd.nextDouble < Rabbit.ChanceOfBaby) {
                 // make baby rabbit
-                val birthDistance = 5.0
-                val babyLoc = Location(loc.x + s.rnd.nextDouble*birthDistance, loc.y + s.rnd.nextDouble*birthDistance)
+                val babyLoc = Location(loc.x + s.rnd.nextDouble*Rabbit.BirthDistance, loc.y + s.rnd.nextDouble*Rabbit.BirthDistance)
                 s.birth(new Rabbit(babyLoc))
               }
               fullyFed
             }
             else didntEat
           }
-          else moveToward(g.loc).didntEat
+          else moveToward(g).didntEat
         }
         case None => didntEat
       }
     }
   } 
+}
+
+object Rabbit {
+  val Full = 30
+  val MoveDistance = 1.0
+  val ChanceOfBaby = 0.25
+  val BirthDistance = 5.0
 }
 

@@ -15,8 +15,10 @@ case class Meat(
     this(-1, loc, Meat.Durability)
   }
   
-  def setId(newId: Int) = Meat(newId, loc, durability) 
+  override def setId(newId: Int) = Meat(newId, loc, durability) 
   
+  override val size = 0.5
+
   def age: Meat = if (durability==0) this else Meat(id, loc, durability-1)
   
   def act(ms: List[Message], s: SimulationBuilder): Meat = {

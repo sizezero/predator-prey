@@ -13,6 +13,8 @@ case class Grass(
   
   def setId(newId: Int) = Grass(newId, loc)
   
+  override val size = 0.75
+  
   // A grass's behavior never changes
   def act(ms: List[Message], s: SimulationBuilder): Grass = {
     // a single grass does nothing

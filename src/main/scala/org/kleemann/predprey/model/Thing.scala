@@ -25,7 +25,23 @@ trait Thing {
   def isInSimulation = id != -1
   
   def act(ms: List[Message], s: SimulationBuilder): Thing
+
+  def size: Double
   
+  def adjacent(that: Thing): Boolean = {
+    val span = (this.size + that.size) / 2
+    math.abs(this.loc.x - that.loc.x) < span && math.abs(this.loc.y - that.loc.y) < span 
+  }
+
+  // fairly dumb move algorithm: move dist 0.5 in both x and y directions towards target
+  // will overshoot.  Size is the total size of both objects.
+  def toward(that: Thing, dist: Double): Location = {
+    if (adjacent(that)) this.loc
+    else Location(
+        if (this.loc.x > that.loc.x) this.loc.x - dist else this.loc.x + dist,
+        if (this.loc.y > that.loc.y) this.loc.y - dist else this.loc.y + dist)
+  }
+    
   /**
    * Add some newlines and indentation to make the objects easier to read
    */

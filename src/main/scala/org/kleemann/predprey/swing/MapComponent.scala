@@ -24,8 +24,6 @@ class MapComponent(var simulation: Simulation, val statusComponent: TextArea) ex
 
   // screen coords = model coords * scale
   val scale = 30.0
-  // the width and height of a thing in model coords
-  val thingBounds = 1.0
   
   // the center of the map in model coordinates
   private var _center = Location(simulation.width / 2, simulation.height / 2)
@@ -51,8 +49,7 @@ class MapComponent(var simulation: Simulation, val statusComponent: TextArea) ex
       val y = (e.point.y - size.height / 2.0) / scale + center.y
       // simple clicking; all objects are 1x1 in model size
       // linear search
-      val hb = thingBounds / 2
-      selectedThing = simulation.things.find{ t => x>t.loc.x-hb && x<t.loc.x+hb && y>t.loc.y-hb && y<t.loc.y+hb }
+      selectedThing = simulation.things.find{ t => x>t.loc.x-t.size/2 && x<t.loc.x+t.size/2 && y>t.loc.y-t.size/2 && y<t.loc.y+t.size/2 }
       repaint
   }
   
@@ -72,31 +69,32 @@ class MapComponent(var simulation: Simulation, val statusComponent: TextArea) ex
     g.setColor(new Color(0xa56648)) // brown background
     g.fillRect(cx(0.0), cy(0.0), (simulation.width * scale).toInt, (simulation.height * scale).toInt)
     
-    val thingBoundsS = (thingBounds * scale).toInt
-    
     // current things are boxes the size of a model dimension
     for(t <- simulation.things)
       // don't display thing if it is outside the viewport
-      if (t.loc.x > left-scale && t.loc.x < right+scale && t.loc.y > top-scale && t.loc.y < bottom+scale)
+      if (t.loc.x > left-scale && t.loc.x < right+scale && t.loc.y > top-scale && t.loc.y < bottom+scale) {
+        val thingBounds = (t.size * scale).toInt
         t match {
           case gr: Grass => {
             g.setColor(Color.YELLOW)
-            g.fillRect(cx(gr.loc.x - thingBounds / 2), cy(gr.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
+            // grass is twice as high as it's size
+            g.fillRect(cx(gr.loc.x - t.size/2), cy(gr.loc.y - t.size), thingBounds, thingBounds*2)
           }
           case r: Rabbit => {
             g.setColor(Color.BLUE)
-            g.fillRect(cx(r.loc.x - thingBounds / 2), cy(r.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
+            g.fillRect(cx(t.loc.x - t.size/2), cy(t.loc.y - t.size/2), thingBounds, thingBounds)
           }
           case w: Wolf => {
             g.setColor(Color.RED)
-            g.fillRect(cx(w.loc.x - thingBounds / 2), cy(w.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
+            g.fillRect(cx(w.loc.x - t.size/2), cy(w.loc.y - t.size/2), thingBounds, thingBounds)
           }
           case m: Meat => {
             g.setColor(Color.MAGENTA)
-            g.fillRect(cx(m.loc.x - thingBounds / 2), cy(m.loc.y - thingBounds / 2), thingBoundsS, thingBoundsS)
+            g.fillRect(cx(m.loc.x - t.size/2), cy(m.loc.y - t.size/2), thingBounds, thingBounds)
           }
           case _ =>
         }
+      }
 
     // display a green circle around the selected item
     selectedThing match {

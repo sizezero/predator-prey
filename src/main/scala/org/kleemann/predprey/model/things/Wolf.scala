@@ -14,7 +14,9 @@ case class Wolf(
     this(-1, loc, Wolf.Full, Wolf.BirthDelay, Wolf.Prowling)
   }
   
-  def setId(newId: Int) = Wolf(newId, loc, fed, nextBirth, behavior) 
+  override def setId(newId: Int) = Wolf(newId, loc, fed, nextBirth, behavior) 
+  
+  override val size = 3.0
   
   def isPregnant: Boolean = nextBirth<=0
   
@@ -22,7 +24,7 @@ case class Wolf(
   
   def didntEat: Wolf = Wolf(id, loc, fed-1, nextBirth, behavior)
   
-  def moveToward(target: Location): Wolf = Wolf(id, loc.moveTowards(target, Wolf.MoveDistance), fed, nextBirth, behavior)
+  def moveToward(target: Thing): Wolf = Wolf(id, toward(target, Wolf.MoveDistance), fed, nextBirth, behavior)
 
   def chase(target: Thing): Wolf = Wolf(id, loc, fed, nextBirth, new Wolf.Chasing(target))
   
@@ -41,6 +43,7 @@ case class Wolf(
 }
 
 object Wolf {
+  
   val Full = 30
   val Hungry = 20
   val BirthDelay = 10
@@ -64,7 +67,7 @@ object Wolf {
         // if meat is adjacent then eat it; possibly give birth
         Thing.closest(ms, w.loc) match {
           case Some((m, d)) =>
-            if (Location.adjacent(d) && s.kill(m)) {
+            if (w.adjacent(m) && s.kill(m)) {
               if (w.isPregnant) {
                 // make baby wolf
                 val babyLoc = Location(w.loc.x + s.rnd.nextDouble*BirthDistance, w.loc.y + s.rnd.nextDouble*BirthDistance)
@@ -96,7 +99,7 @@ object Wolf {
     override def toString = "Chasing: "+target
     
     def act(w: Wolf, ms: List[Message], s: SimulationBuilder): Wolf = {
-      if (Location.adjacent(w.loc.distance(target.loc))) {
+      if (w.adjacent(target)) {
         // if target is a rabbit then attack it
         target match {
           case r: Rabbit => s.send(r, Attack)
@@ -107,7 +110,7 @@ object Wolf {
         w2.behavior.act(w2, ms, s)
       }
       // keeps moving toward thing location even if it has been killed
-      else w.didntEat.moveToward(target.loc)
+      else w.didntEat.moveToward(target)
     }   
   }
 }

@@ -9,7 +9,9 @@ case class World(val id: Int) extends Thing {
     
   val loc = Location(0, 0)
     
-  def setId(newId: Int) = new World(newId) 
+  override def setId(newId: Int) = new World(newId)
+  
+  override val size = 1.0 // not used
     
   // The world's behavior never changes
   def act(ms: List[Message], s: SimulationBuilder): World = {

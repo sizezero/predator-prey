@@ -10,14 +10,11 @@ case class Location(val x: Double, y: Double) {
     math.sqrt(a * a + b * b)
   }
   
-  // fairly dumb move algorithm: move dist 0.5 in both x and y directions towards target
-  // will overshoot
-  def moveTowards(that: Location, dist: Double): Location = {
-    if (Location.adjacent(this distance that)) this
-    else Location(if (this.x > that.x) this.x - dist else this.x + dist, if (this.y > that.y) this.y - dist else this.y + dist)
-  }
 }
 
 object Location {
-  def adjacent(distance: Double): Boolean = math.abs(distance) < 2.0
+  /**
+   * Checks whether two things are adjacent
+   */
+  def adjacent(d: Double, size1: Double, size2: Double) = d < (size1+size2)/2
 }
