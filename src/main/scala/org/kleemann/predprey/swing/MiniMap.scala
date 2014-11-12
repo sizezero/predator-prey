@@ -17,6 +17,7 @@ class MiniMap(var simulation: Simulation, val mapComponent: MapComponent) extend
     case e: MousePressed  =>
       // the mini-map is 1:1 model to screen coords so no conversion is necessary
       mapComponent.center = Location(e.point.x, e.point.y)
+      repaint
     }
   
   // TODO: seems kind of dumb to set this both here and in the constructor
