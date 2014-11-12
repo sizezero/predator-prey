@@ -8,11 +8,14 @@ abstract class Simulation {
 
   /**
    * A serial number that is incremented each time the simulation is advanced.
+   * The simulation attempts to advance this once per second.  Perhaps tie this 
+   * to a day/night cycle so that we can estimate hunger, births, etc.
+   * One day/night cycle = 60 iterations 
    */
   val iteration: Int
   
   /**
-   * Returns the next value in the simulation.
+   * Returns the next iteration of the simulation.
    */
   def next: Simulation
 
