@@ -38,8 +38,10 @@ trait Thing {
   def toward(that: Thing, dist: Double): Location = {
     if (adjacent(that)) this.loc
     else Location(
-        if (this.loc.x > that.loc.x) this.loc.x - dist else this.loc.x + dist,
-        if (this.loc.y > that.loc.y) this.loc.y - dist else this.loc.y + dist)
+        if (this.loc.x > that.loc.x) math.max(this.loc.x - dist, that.loc.x)
+        else math.min(this.loc.x + dist, that.loc.x),
+        if (this.loc.y > that.loc.y) math.max(this.loc.y - dist, that.loc.y) 
+        else math.min(this.loc.y + dist, that.loc.y))
   }
     
   /**
