@@ -34,16 +34,21 @@ private[model] class SimulationImp(
 
 object SimulationFactory {
 
+  private val conf = com.typesafe.config.ConfigFactory.load()
+  
   // TODO: returning SimulationImp just for testing
   def random1: SimulationImp = {
-    val width = 150.0
-    val height = 100.0
+    
+    val pre = "init.random1"
+    val init = "random1"
+    val width = conf.getDouble(s"$pre.width")
+    val height = conf.getDouble(s"$pre.height")
     var id: Int = 0
     val rnd = new scala.util.Random()
 
     var ts: List[Thing] = List()
     
-    for (i <- 1 to 100) {
+    for (i <- 1 to conf.getInt(s"$pre.grass")) {
       // need to play around with the list append syntax
       // doesn't work
       // l += i
@@ -55,13 +60,13 @@ object SimulationFactory {
       id += 1
     }
 
-    for (i <- 1 to 50) {
+    for (i <- 1 to conf.getInt(s"$pre.rabbit")) {
       val loc = Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))
       ts = new Rabbit(loc).setId(id) :: ts
       id += 1
     }
 
-    for (i <- 1 to 20) {
+    for (i <- 1 to conf.getInt(s"$pre.wolf")) {
       val loc = Location(rnd.nextInt(width.toInt), rnd.nextInt(height.toInt))
       ts = new Wolf(loc).setId(id) :: ts
       id += 1
