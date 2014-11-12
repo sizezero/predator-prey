@@ -3,9 +3,9 @@ package org.kleemann.predprey.model.things
 import org.kleemann.predprey.model._
 
 /**
- * <p>This object allows us to handle general, global behavior
+ * <p>This is not a visible object that exists in the world but the behavior of this singleton allows us to handle general, global behavior
  */
-case class World(val id: Int) extends Thing {
+class World(val id: Int) extends Thing {
     
   val loc = Location(0, 0)
     
@@ -33,16 +33,22 @@ case class World(val id: Int) extends Thing {
       i <- 0 until s.width.toInt by 10      
     } {
       val grassCount = sparseGroup.getOrElse( (i,j), List()).size
-      val pct =  grassCount match {
-        case 0 => 5
-        case 1 => 20
-        case 2 => 50
-        case n: Int if n>10 => 0 // maximum grass growth
-        case _ => 70
-      }
-      if (s.rnd.nextInt(100) < pct) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
+      if (s.rnd.nextDouble < World.grassCountToPercentage(grassCount)) s.birth(new Grass(Location(i+s.rnd.nextDouble*10, j+s.rnd.nextDouble*10)))
     }
     
     this
+  }
+}
+
+object World {
+  /**
+   * Given the number of grass in a region of the screen, what is the percentage that a new grass will grow?
+   */
+  private def grassCountToPercentage(count: Int): Double = count match {
+    case 0 => 5
+    case 1 => 20
+    case 2 => 50
+    case n: Int if n>10 => 0 // maximum grass growth
+    case _ => 70
   }
 }
