@@ -34,7 +34,8 @@ case class Rabbit(
 
   // Rabbit has dynamic behavior but check for starvation first
   def act(ms: List[Message], s: SimulationBuilder): Rabbit = {
-    if (isStarved) {
+    val isAttacked = ms.exists{ _ == Attack }
+    if (isStarved || isAttacked) {
       s.kill(this)
       s.birth(new Meat(loc))
       this
