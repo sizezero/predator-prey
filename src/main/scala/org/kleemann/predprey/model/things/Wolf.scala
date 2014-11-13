@@ -20,7 +20,7 @@ case class Wolf(
   
   def isPregnant: Boolean = nextBirth<=0
   
-  def fullyFed: Wolf = Wolf(id, loc, Wolf.Full, if (isPregnant) 5 else nextBirth-1, Wolf.Prowling)
+  def fullyFed: Wolf = Wolf(id, loc, Wolf.Full, if (isPregnant) Wolf.BirthDelay else nextBirth-1, Wolf.Prowling)
   
   def didntEat: Wolf = Wolf(id, loc, fed-1, nextBirth, behavior)
   
@@ -57,9 +57,11 @@ object Wolf {
     override def toString = "Prowling"
     
     def act(w: Wolf, ms: List[Message], s: SimulationBuilder): Wolf = {
-      // if wolf is hungry then look for closest meat or rabbit
+      // if wolf is not hungry then don't move
       if (w.fed > Wolf.Hungry) w.didntEat
       else {
+        // if wolf is hungry then look for nearest meat or rabbit
+
         // TODO: very inefficient to filter this for every Wolf
         val ms = s.ts.filter{ _ match {
           case _: Meat => true
