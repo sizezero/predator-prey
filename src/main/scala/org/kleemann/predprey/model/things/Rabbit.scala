@@ -52,18 +52,40 @@ object Rabbit {
   val MoveDistance = conf.getDouble(s"rabbit.move-distance")
   val BirthDelay = conf.getInt(s"rabbit.birth-delay")
   val BirthDistance = conf.getDouble(s"rabbit.birth-distance")
+  val WolfFearDistance = conf.getDouble(s"rabbit.wolf-fear-distance")
   
   object Wandering extends Behavior[Rabbit] {
     
     override def toString = "Wandering"
     
     def act(r: Rabbit, ms: List[Message], s: SimulationBuilder): Rabbit = {
-      // if rabbit is not hungry then don't move
-      if (r.fed > Rabbit.Hungry) r.didntEat
+      if (r.fed > Rabbit.Hungry) {
+        // if a wolf is near, run away for a bit
+        
+        // TODO: very inefficient to filter this for every Rabbit
+        val ws = s.ts.filter{ _ match {
+          case _: Wolf => true
+          case _ => false
+        }}
+        
+        Thing.closest(ws, r.loc) match {
+          case Some((w, d)) =>
+            if (d < WolfFearDistance) {
+              // for now just run to a spot directly opposite from the wolf
+              // eventually, we may use vectors for smarter behavior
+              val oppositeLocation = Location(
+                  r.loc.x - (w.loc.x - r.loc.x), r.loc.y - (w.loc.y - r.loc.y))
+              return r.didntEat.chase(new Marker(-1, oppositeLocation))
+            }
+          case _ => 
+        }
+        // just sit around
+        r.didntEat
+      }
       else {
         // if rabbit is hungry then look for nearest grass
 
-        // TODO: very inefficient to filter this for every Wolf
+        // TODO: very inefficient to filter this for every Rabbit
         val gs = s.ts.filter{ _ match {
           case _: Grass => true
           case _ => false
