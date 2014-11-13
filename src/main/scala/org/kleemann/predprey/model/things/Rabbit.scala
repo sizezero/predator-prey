@@ -71,10 +71,10 @@ object Rabbit {
         Thing.closest(ws, r.loc) match {
           case Some((w, d)) =>
             if (d < WolfFearDistance) {
-              // for now just run to a spot directly opposite from the wolf
+              // for now just run to a spot directly opposite from the wolf twice as far
               // eventually, we may use vectors for smarter behavior
               val oppositeLocation = Location(
-                  r.loc.x - (w.loc.x - r.loc.x), r.loc.y - (w.loc.y - r.loc.y))
+                  r.loc.x - 2*(w.loc.x - r.loc.x), r.loc.y - 2*(w.loc.y - r.loc.y))
               return r.didntEat.chase(new Marker(-1, oppositeLocation))
             }
           case _ => 
