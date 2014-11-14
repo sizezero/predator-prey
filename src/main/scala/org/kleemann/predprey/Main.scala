@@ -14,6 +14,9 @@ object Main extends SimpleSwingApplication {
   val mapComponent = new swing.MapComponent(simulation, statusComponent)
   val miniMapComponent = new swing.MiniMap(simulation, mapComponent)
   val iterationLabel = new Label(simulation.iteration.toString)
+  val grassCountLabel = new Label
+  val rabbitCountLabel = new Label
+  val wolfCountLabel = new Label
 
   def top = new MainFrame {
     title = "Predator / Prey"
@@ -32,7 +35,8 @@ object Main extends SimpleSwingApplication {
       }
     }
     val left= new BoxPanel(Orientation.Vertical) {
-      contents.append(iterationLabel, playPauseButton)
+      contents.append(iterationLabel, playPauseButton, 
+          grassCountLabel, rabbitCountLabel, wolfCountLabel)
       border = Swing.EmptyBorder(5, 5, 5, 5)
     }
     val right = new BorderPanel {
@@ -65,8 +69,12 @@ object Main extends SimpleSwingApplication {
         val nextSimulation = simulationFreshReference.next
         InvokeLater {
           // back to UI thread
+          import org.kleemann.predprey.model.things._
           simulation = nextSimulation
           iterationLabel.text = simulation.iteration.toString
+          grassCountLabel.text = "G: "+simulation.things.filter{ _ match { case _: Grass => true; case _ => false }}.size
+          rabbitCountLabel.text = "R: "+simulation.things.filter{ _ match { case _: Rabbit => true; case _ => false }}.size
+          wolfCountLabel.text = "W: "+simulation.things.filter{ _ match { case _: Wolf => true; case _ => false }}.size
           mapComponent.setSimulation(simulation)
           miniMapComponent.setSimulation(simulation)
           isCalculatingNextIteration = false
