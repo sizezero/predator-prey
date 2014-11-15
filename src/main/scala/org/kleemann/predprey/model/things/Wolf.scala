@@ -51,6 +51,8 @@ object Wolf {
   val MoveDistance = conf.getDouble(s"wolf.move-distance")
   val BirthDelay = conf.getInt(s"wolf.birth-delay")
   val BirthDistance = conf.getDouble(s"wolf.birth-distance")
+  val SightDistance =  conf.getDouble(s"wolf.sight-distance")
+  val WanderRange =  conf.getDouble(s"wolf.wander-range")
   
   object Prowling extends Behavior[Wolf] {
 
@@ -62,8 +64,8 @@ object Wolf {
       else {
         // if wolf is hungry then look for nearest meat or rabbit
 
-        // TODO: very inefficient to filter this for every Wolf
-        val ms = s.ts.filter{ _ match {
+        val ts = Thing.near(s.ts, w.loc, SightDistance) 
+        val ms = ts.filter{ _ match {
           case _: Meat => true
           case _ => false
         }}
@@ -84,15 +86,20 @@ object Wolf {
         
         // no adjacent meat
         
-        // TODO: very inefficient to filter this for every Wolf
-        val rms = s.ts.filter{ _ match {
+        val rms = ts.filter{ _ match {
           case _: Rabbit => true
           case _: Meat => true
           case _ => false
         }}
         Thing.closest(rms, w.loc) match {
           case Some((t, d)) => w.didntEat.chase(t)
-          case _ => w.didntEat
+          case _ => {
+            // hungry and don't see anything to eat.
+            // move to a nearby location ( one of 9 corners of a bounding box)
+            val loc = Location(
+              w.loc.x + (s.rnd.nextInt(3)-1) * WanderRange, w.loc.y + (s.rnd.nextInt(3)-1) * WanderRange)
+            w.didntEat.chase(new Marker(-1, loc))
+          }
         }
       }
     }

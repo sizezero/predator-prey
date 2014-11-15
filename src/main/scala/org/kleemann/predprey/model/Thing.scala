@@ -94,6 +94,15 @@ object Thing {
         case None => Some((t, dNew))
       }
     }}
+  
+  /**
+   * Find all things that are within a distance of a location.
+   * Distance is compared to the center of things so size is ignored.
+   */
+  def near[T <: Thing](ts: Seq[T], loc: Location, dist: Double): Seq[Thing] = {
+    val d2 = dist*dist
+    ts.filter{ t => loc.distance2(t.loc) < d2 }
+  }
 }
 
 /**
