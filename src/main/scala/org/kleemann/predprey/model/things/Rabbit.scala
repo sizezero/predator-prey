@@ -53,17 +53,19 @@ object Rabbit {
   val BirthDelay = conf.getInt(s"rabbit.birth-delay")
   val BirthDistance = conf.getDouble(s"rabbit.birth-distance")
   val WolfFearDistance = conf.getDouble(s"rabbit.wolf-fear-distance")
+  val SightDistance =  conf.getDouble(s"rabbit.sight-distance")
+  val WanderRange =  conf.getDouble(s"rabbit.wander-range")
   
   object Wandering extends Behavior[Rabbit] {
     
     override def toString = "Wandering"
     
     def act(r: Rabbit, ms: List[Message], s: SimulationBuilder): Rabbit = {
+      val ts = Thing.near(s.ts, r.loc, SightDistance) 
       if (r.fed > Rabbit.Hungry) {
         // if a wolf is near, run away for a bit
         
-        // TODO: very inefficient to filter this for every Rabbit
-        val ws = s.ts.filter{ _ match {
+        val ws = ts.filter{ _ match {
           case _: Wolf => true
           case _ => false
         }}
@@ -77,16 +79,15 @@ object Rabbit {
                   r.loc.x - 2*(w.loc.x - r.loc.x), r.loc.y - 2*(w.loc.y - r.loc.y))
               return r.didntEat.chase(new Marker(-1, oppositeLocation))
             }
-          case _ => 
+          case _ =>
         }
-        // just sit around
+        // no woves; not hungry: just sit around
         r.didntEat
       }
       else {
         // if rabbit is hungry then look for nearest grass
 
-        // TODO: very inefficient to filter this for every Rabbit
-        val gs = s.ts.filter{ _ match {
+        val gs = ts.filter{ _ match {
           case _: Grass => true
           case _ => false
         }}
@@ -102,7 +103,13 @@ object Rabbit {
               }
               return r.fullyFed
             } else r.didntEat.chase(g)
-          case None => r.didntEat
+          case None => {
+            // hungry and don't see anything to eat.
+            // move to a nearby location ( one of 9 corners of a bounding box)
+            val loc = Location(
+              r.loc.x + (s.rnd.nextInt(3)-1) * WanderRange, r.loc.y + (s.rnd.nextInt(3)-1) * WanderRange)
+            r.didntEat.chase(new Marker(-1, loc))
+          }
         }
       }
     }
