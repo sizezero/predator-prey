@@ -7,7 +7,7 @@ import org.kleemann.predprey.swing._
 import model._
 import scala.concurrent._
 
-object Main extends SimpleSwingApplication {
+object GUI extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
   val statusComponent = new TextArea
