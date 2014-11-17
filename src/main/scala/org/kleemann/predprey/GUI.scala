@@ -7,6 +7,12 @@ import org.kleemann.predprey.swing._
 import model._
 import scala.concurrent._
 
+/**
+ * This is the main entry point for the graphical part of the program.  
+ * Currently it starts with the default configuration in application.conf 
+ * and place the scenario out visually, one iteration per second, until 
+ * the user has had enough. 
+ */
 object GUI extends SimpleSwingApplication {
   
   var simulation: Simulation = SimulationFactory.random1
